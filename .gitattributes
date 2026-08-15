@@ -1,0 +1,60 @@
+# Auto-detect text files and normalize line endings to LF.
+* text=auto eol=lf
+
+# Text files must be UTF-8 in both the working tree and Git index.
+*.bat text working-tree-encoding=UTF-8 eol=lf
+*.bash text working-tree-encoding=UTF-8 eol=lf
+*.cmd text working-tree-encoding=UTF-8 eol=lf
+*.config text working-tree-encoding=UTF-8 eol=lf
+*.cs text working-tree-encoding=UTF-8 eol=lf
+*.csproj text working-tree-encoding=UTF-8 eol=lf
+*.css text working-tree-encoding=UTF-8 eol=lf
+*.editorconfig text working-tree-encoding=UTF-8 eol=lf
+*.gitattributes text working-tree-encoding=UTF-8 eol=lf
+*.gitignore text working-tree-encoding=UTF-8 eol=lf
+*.gradle text working-tree-encoding=UTF-8 eol=lf
+*.groovy text working-tree-encoding=UTF-8 eol=lf
+*.html text working-tree-encoding=UTF-8 eol=lf
+*.java text working-tree-encoding=UTF-8 eol=lf
+*.js text working-tree-encoding=UTF-8 eol=lf
+*.json text working-tree-encoding=UTF-8 eol=lf
+*.jsx text working-tree-encoding=UTF-8 eol=lf
+*.kt text working-tree-encoding=UTF-8 eol=lf
+*.kts text working-tree-encoding=UTF-8 eol=lf
+*.md text working-tree-encoding=UTF-8 eol=lf
+*.props text working-tree-encoding=UTF-8 eol=lf
+*.properties text working-tree-encoding=UTF-8 eol=lf
+*.ps1 text working-tree-encoding=UTF-8 eol=lf
+*.sass text working-tree-encoding=UTF-8 eol=lf
+*.scss text working-tree-encoding=UTF-8 eol=lf
+*.sh text working-tree-encoding=UTF-8 eol=lf
+*.sln text working-tree-encoding=UTF-8 eol=lf
+*.sql text working-tree-encoding=UTF-8 eol=lf
+*.targets text working-tree-encoding=UTF-8 eol=lf
+*.toml text working-tree-encoding=UTF-8 eol=lf
+*.ts text working-tree-encoding=UTF-8 eol=lf
+*.tsx text working-tree-encoding=UTF-8 eol=lf
+*.txt text working-tree-encoding=UTF-8 eol=lf
+*.vue text working-tree-encoding=UTF-8 eol=lf
+*.xaml text working-tree-encoding=UTF-8 eol=lf
+*.xml text working-tree-encoding=UTF-8 eol=lf
+*.yaml text working-tree-encoding=UTF-8 eol=lf
+*.yml text working-tree-encoding=UTF-8 eol=lf
+*.zsh text working-tree-encoding=UTF-8 eol=lf
+
+# Binary files must never be normalized or transcoded.
+*.7z binary
+*.dll binary
+*.exe binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.jpeg binary
+*.jpg binary
+*.pdf binary
+*.pdb binary
+*.png binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
