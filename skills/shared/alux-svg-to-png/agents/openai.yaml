@@ -1,0 +1,4 @@
+interface:
+  display_name: "SVG to PNG"
+  short_description: "Convert SVG and bitmap artwork"
+  default_prompt: "Use $alux-svg-to-png to convert SVG or bitmap artwork with validated output."
