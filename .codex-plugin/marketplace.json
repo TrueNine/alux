@@ -7,8 +7,10 @@
 		{
 			"name": "alux",
 			"source": {
-				"source": "url",
-				"path": "./"
+				"source": "git-subdir",
+				"url": "https://github.com/TrueNine/alux.git",
+				"path": "./",
+				"ref": "main"
 			},
 			"policy": {
 				"installation": "AVAILABLE",
