@@ -1,0 +1,20 @@
+{
+  "name": "alux",
+  "interface": {
+    "displayName": "Alux"
+  },
+  "plugins": [
+    {
+      "name": "alux",
+      "source": {
+        "source": "url",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
