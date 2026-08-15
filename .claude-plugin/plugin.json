@@ -8,5 +8,6 @@
   },
   "homepage": "https://github.com/TrueNine/alux",
   "repository": "https://github.com/TrueNine/alux",
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "skills": "./skills/claude-code-skills"
 }
