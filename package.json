@@ -4,7 +4,8 @@
 	"license": "AGPL-3.0-or-later",
 	"packageManager": "bun@1.3.14",
 	"scripts": {
-		"prepare": "husky",
+    "prepare": "husky",
+		"postinstall": "husky",
 		"lint": "biome check .",
 		"lint:fix": "biome lint --write .",
 		"list:fix": "biome lint --write .",

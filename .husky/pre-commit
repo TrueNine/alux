@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if ! git diff --cached --quiet -- skills/shared/; then
+	bun scripts/mixining-shared-skills-to-native-skills.ts || exit $?
+fi
+
 bun run --if-present lint:fix
 bun run --if-present format:fix
 bun run --if-present check:typescript:fix
