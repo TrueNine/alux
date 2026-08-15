@@ -11,6 +11,7 @@ jdtls-data/
 !**/src/test/**/build/
 assets/*
 !assets/logo.svg
+!assets/logo.png
 .codegraph/
 **/.jqwik-database/
 node_modules/
