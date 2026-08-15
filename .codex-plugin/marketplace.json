@@ -5,7 +5,7 @@
 	},
 	"plugins": [
 		{
-			"name": "devopsflow",
+			"name": "alux",
 			"source": {
 				"source": "url",
 				"path": "./"
