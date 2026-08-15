@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bun run --if-present lint:fix
+bun run --if-present format:fix
+bun run --if-present check:typescript
