@@ -1,0 +1,131 @@
+{
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "never",
+    "source.organizeImports": "never",
+    "source.sortMembers": "never"
+  },
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 500,
+  "editor.formatOnSave": false,
+  "[markdown]": {
+    "editor.wordWrap": "off"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "build.gradle.kts": "gradle.lockfile, gradle.properties, gradlew, gradlew.bat",
+    "settings.gradle.kts": "settings-gradle.lockfile",
+    "compose.yml": "compose.*.yml",
+    "index.ts": "lib.rs, main.rs",
+    "manifest.json": "pages.json, shime-uni.d.ts, uni.scss",
+    "main.ts": "env.d.ts",
+    ".env.example": ".env*",
+    "*.ts": "$(capture).js, $(capture).d.ts, $(capture).*.ts, $(capture).*.js",
+    "*.src.mdx": "$(capture).mdx",
+    "README.md": "CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, LICENSE, CHANGELOG.md, .gitconfig, .editorconfig, .gitmodules, .gitattributes, *.code-workspace, lefthook.yml",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, pnpm-workspace.yaml, .node-version, turbo.json, .npmignore, .npmrc, bun.lock",
+    ".env": ".env.local, .env.*.local",
+    "tsconfig.json": "tsconfig.*.json, env.d.ts, tsconfig.*.tsbuildinfo, tsconfig.tsbuildinfo",
+    "AGENTS.md": "GEMINI.md, WARP.md, CLAUDE.md",
+    ".gitignore": "nul, .stylelintignore, .stylelintcache, .eslintcache, .codeiumignore, .traeignore, .codeignore,.dockerignore, .cursorignore, .kiroignore, .qoderignore, .warpindexignore, .aiignore",
+    "tsdown.config.ts": "vitest.config.ts, vite.config.ts, eslint.config.ts",
+    "vite.config.ts": "index.html, vitest.config.ts",
+    "Cargo.toml": "Cargo.lock, tauri.conf.json, rustfmt.toml",
+    "next.config.ts": "vitest.config.ts, vite.config.ts, eslint.config.ts, postcss.config.mjs, next-env.d.ts, components.json"
+  },
+  "diffEditor.renderSideBySide": false,
+  "diffEditor.hideUnchangedRegions.enabled": true,
+  "scm.defaultViewMode": "tree",
+  "editor.rulers": [
+    2,
+    4,
+    80,
+    160
+  ],
+  "editor.fontFamily": "JetBrains Mono",
+  "editor.fontLigatures": true,
+  "scss.validate": false,
+  "css.validate": false,
+  "accessibility.signals.lineHasBreakpoint": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasError": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasFoldedArea": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasInlineSuggestion": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasWarning": {
+    "sound": "on"
+  },
+  "accessibility.signals.noInlayHints": {
+    "sound": "on"
+  },
+  "accessibility.signals.notebookCellCompleted": {
+    "sound": "on"
+  },
+  "accessibility.signals.notebookCellFailed": {
+    "sound": "on"
+  },
+  "accessibility.signals.onDebugBreak": {
+    "sound": "on"
+  },
+  "accessibility.signals.taskCompleted": {
+    "sound": "on"
+  },
+  "accessibility.signals.taskFailed": {
+    "sound": "on"
+  },
+  "accessibility.signals.terminalBell": {
+    "sound": "on"
+  },
+  "accessibility.signals.terminalCommandFailed": {
+    "sound": "on"
+  },
+  "accessibility.signals.terminalCommandSucceeded": {
+    "sound": "on"
+  },
+  "accessibility.signals.terminalQuickFix": {
+    "sound": "on"
+  },
+  "accessibility.signals.diffLineDeleted": {
+    "sound": "on"
+  },
+  "accessibility.signals.diffLineInserted": {
+    "sound": "on"
+  },
+  "accessibility.signals.diffLineModified": {
+    "sound": "on"
+  },
+  "accessibility.signals.positionHasError": {
+    "sound": "on"
+  },
+  "accessibility.signals.positionHasWarning": {
+    "sound": "on"
+  },
+  "accessibility.signals.save": {
+    "sound": "always"
+  },
+  "accessibility.signals.format": {
+    "sound": "always"
+  },
+  "accessibility.signals.voiceRecordingStarted": {
+    "sound": "on"
+  },
+  "accessibility.signals.voiceRecordingStopped": {
+    "sound": "on"
+  },
+  "accessibility.signals.clear": {
+    "sound": "on"
+  },
+  "accessibility.signals.progress": {
+    "sound": "on"
+  },
+  "editor.smoothScrolling": true
+}
