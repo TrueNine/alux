@@ -5,7 +5,13 @@
 	"packageManager": "bun@1.3.14",
 	"scripts": {
 		"prepare": "husky",
-		"lint": "biome check ."
+		"lint": "biome check .",
+		"lint:fix": "biome lint --write .",
+		"list:fix": "biome lint --write .",
+		"format": "biome format .",
+		"format:fix": "biome format --write .",
+		"check:typescript": "tsc --noEmit",
+		"check:typescript:fix": "biome check --write . && tsc --noEmit"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.8",
