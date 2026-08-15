@@ -7,6 +7,7 @@
 	"scripts": {
 		"prepare": "husky",
 		"postinstall": "husky",
+		"sync:skills": "bun scripts/mixining-shared-skills-to-native-skills.ts",
 		"lint": "biome check .",
 		"lint:fix": "biome lint --write .",
 		"list:fix": "biome lint --write .",

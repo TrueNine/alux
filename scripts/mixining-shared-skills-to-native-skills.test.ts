@@ -39,6 +39,16 @@ async function createSkillsRoot(): Promise<string> {
 }
 
 describe("mixSharedSkills", () => {
+	test("exposes a sync:skills package command", async () => {
+		const packageJson = JSON.parse(
+			await readFile(new URL("../package.json", import.meta.url), "utf8"),
+		) as { scripts?: Record<string, string> };
+
+		expect(packageJson.scripts?.["sync:skills"]).toBe(
+			"bun scripts/mixining-shared-skills-to-native-skills.ts",
+		);
+	});
+
 	test("copies every shared skill recursively to every native skills directory", async () => {
 		const root = await createSkillsRoot();
 
@@ -46,9 +56,9 @@ describe("mixSharedSkills", () => {
 
 		expect(result).toEqual({
 			copiedSkills: ["example-skill"],
-			targetDirectories: ["claude-skills"],
+			targetDirectories: ["claude-skills", "codex-skills"],
 		});
-		for (const target of ["claude-skills"]) {
+		for (const target of ["claude-skills", "codex-skills"]) {
 			expect(
 				await readFile(join(root, target, "example-skill", "SKILL.md"), "utf8"),
 			).toBe("shared skill");
@@ -82,7 +92,7 @@ describe("mixSharedSkills", () => {
 		).toBe("native skill");
 	});
 
-	test("leaves codex skills and their agent manifests untouched", async () => {
+	test("merges shared skills into Codex while preserving agent manifests", async () => {
 		const root = await createSkillsRoot();
 		await mkdir(join(root, "codex-skills", "example-skill", "agents"), {
 			recursive: true,
@@ -97,6 +107,12 @@ describe("mixSharedSkills", () => {
 		expect(await readdir(join(root, "codex-skills"))).toEqual([
 			"example-skill",
 		]);
+		expect(
+			await readFile(
+				join(root, "codex-skills", "example-skill", "SKILL.md"),
+				"utf8",
+			),
+		).toBe("shared skill");
 		expect(
 			await readFile(
 				join(root, "codex-skills", "example-skill", "agents", "openai.yaml"),

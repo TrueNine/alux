@@ -38,10 +38,7 @@ export async function mixSharedSkills(
 		directoriesWithin(sharedRoot),
 		directoriesWithin(skillsRoot).then((directories) =>
 			directories.filter(
-				(directory) =>
-					directory !== "shared" &&
-					directory !== "codex-skills" &&
-					directory.endsWith("-skills"),
+				(directory) => directory !== "shared" && directory.endsWith("-skills"),
 			),
 		),
 	]);
@@ -52,7 +49,10 @@ export async function mixSharedSkills(
 	const conflicts: string[] = [];
 	for (const targetDirectory of targetDirectories) {
 		for (const skill of sharedSkills) {
-			if (await exists(join(skillsRoot, targetDirectory, skill))) {
+			if (
+				targetDirectory !== "codex-skills" &&
+				(await exists(join(skillsRoot, targetDirectory, skill)))
+			) {
 				conflicts.push(`${skill} in ${targetDirectory}`);
 			}
 		}
