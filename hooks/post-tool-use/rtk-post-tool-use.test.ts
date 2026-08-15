@@ -1,0 +1,122 @@
+import { expect, test } from "bun:test";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { proxyInvocation, resolveOptimizedCommand } from "./rtk-post-tool-use";
+
+const hooksDirectory = join(import.meta.dir, "..");
+const entrypoint = join(import.meta.dir, "rtk-post-tool-use.ts");
+
+test("PostToolUse invokes the Bun TypeScript entrypoint", () => {
+	const configuration = JSON.parse(
+		readFileSync(join(hooksDirectory, "hooks.codex.json"), "utf8"),
+	);
+	const group = configuration.hooks.PostToolUse[0];
+
+	expect(group).toEqual({
+		matcher: "^(Bash|exec|exec_command|unified_exec)$",
+		hooks: [
+			{
+				type: "command",
+				command: `bun "\${PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts"`,
+				statusMessage: "RTK output compaction",
+			},
+		],
+	});
+});
+
+test("TypeScript entrypoint preserves a no-op hook result", () => {
+	const result = Bun.spawnSync({
+		cmd: ["bun", entrypoint],
+		stdin: new TextEncoder().encode("not json"),
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+
+	expect(result.exitCode).toBe(0);
+	expect(new TextDecoder().decode(result.stdout)).toBe("");
+	expect(new TextDecoder().decode(result.stderr)).toBe("");
+});
+
+test("TypeScript entrypoint summarizes verbose output from an outer exec payload", () => {
+	const verboseOutput = Array.from(
+		{ length: 100 },
+		(_, index) => `line ${index} ${"x".repeat(30)}`,
+	).join("\n");
+	const payload = {
+		tool_name: "exec",
+		tool_input: {
+			code: 'const result = await tools.shell_command({ command: "bun test" }); text(result);',
+		},
+		tool_response: {
+			output: verboseOutput,
+			exit_code: 0,
+		},
+	};
+	const result = Bun.spawnSync({
+		cmd: ["bun", entrypoint],
+		stdin: new TextEncoder().encode(JSON.stringify(payload)),
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+
+	const replacement = new TextDecoder().decode(result.stderr);
+	expect(result.exitCode).toBe(2);
+	expect(replacement).toContain("Output summary (100 lines)");
+	expect(replacement).toContain("... omitted verbose output ...");
+	expect(replacement).not.toContain("line 50");
+});
+
+test("TypeScript entrypoint does not retain a Python implementation dependency", () => {
+	const source = readFileSync(entrypoint, "utf8");
+
+	expect(source).not.toContain("python3");
+	expect(source).not.toContain("hook.py");
+	expect(existsSync(join(import.meta.dir, "rtk-post-tool-use"))).toBe(false);
+	expect(existsSync(join(import.meta.dir, "rtk-post-tool-use.py"))).toBe(false);
+});
+
+test("TypeScript entrypoint cites the RTK repository and hook documentation", () => {
+	const source = readFileSync(entrypoint, "utf8");
+
+	expect(source).toContain("// GitHub: https://github.com/rtk-ai/rtk");
+	expect(source).toContain(
+		"// Documentation: https://github.com/rtk-ai/rtk/blob/develop/hooks/README.md",
+	);
+});
+
+test("optimization decisions come from rtk rewrite", () => {
+	const calls: string[][] = [];
+	const spawn = (options: { cmd: string[] }) => {
+		calls.push(options.cmd);
+		return {
+			exitCode: 3,
+			stdout: new TextEncoder().encode("rtk gh pr view 42"),
+			stderr: new Uint8Array(),
+		};
+	};
+
+	expect(resolveOptimizedCommand("gh pr view 42", undefined, spawn)).toBe(
+		"rtk gh pr view 42",
+	);
+	expect(calls).toEqual([["rtk", "rewrite", "gh pr view 42"]]);
+});
+
+test("commands without an RTK optimization are not proxied", () => {
+	const spawn = () => ({
+		exitCode: 1,
+		stdout: new Uint8Array(),
+		stderr: new Uint8Array(),
+	});
+
+	expect(
+		resolveOptimizedCommand("unknown-tool --flag", undefined, spawn),
+	).toBeUndefined();
+});
+
+test("optimized commands execute through rtk proxy", () => {
+	expect(proxyInvocation("rtk gh pr view 42")).toEqual([
+		"rtk",
+		"proxy",
+		"rtk gh pr view 42",
+	]);
+});
