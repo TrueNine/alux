@@ -1,6 +1,8 @@
 {
 	"name": "alux",
+	"version": "0.0.5",
 	"displayName": "Alux",
+	"description": "Shared skills and workflows for Claude Code",
 	"author": {
 		"name": "TrueNine",
 		"email": "truenine304520@gmail.com",
@@ -10,7 +12,6 @@
 	"repository": "https://github.com/TrueNine/alux",
 	"license": "AGPL-3.0-or-later",
 	"skills": "./skills/claude-skills",
-	"agents": [],
 	"hooks": "./hooks/hooks.claude.json",
 	"mcpServers": "./mcps/.mcp.claude.json"
 }
