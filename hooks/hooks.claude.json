@@ -1,3 +1,15 @@
 {
-	"hooks": {}
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts\"",
+						"statusMessage": "Synchronizing local agent instructions"
+					}
+				]
+			}
+		]
+	}
 }

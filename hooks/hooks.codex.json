@@ -1,5 +1,16 @@
 {
 	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts\"",
+						"statusMessage": "Synchronizing local agent instructions"
+					}
+				]
+			}
+		],
 		"PreToolUse": [
 			{
 				"matcher": "^(Bash|exec|exec_command|unified_exec)$",
