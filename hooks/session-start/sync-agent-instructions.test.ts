@@ -40,6 +40,31 @@ test("derives Claude and Gemini instructions and excludes them locally", () => {
 	expect(exclude.match(/^GEMINI\.md$/gm)).toHaveLength(1);
 });
 
+test("derives nested Claude and Gemini instructions", () => {
+	const worktree = createWorktree();
+	const nestedDirectory = join(worktree, "skills", "example");
+	mkdirSync(nestedDirectory, { recursive: true });
+	writeFileSync(
+		join(nestedDirectory, "AGENTS.md"),
+		"Read skills/example/AGENTS.md before changing it.\n",
+	);
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(readFileSync(join(nestedDirectory, "CLAUDE.md"), "utf8")).toBe(
+		"Read skills/example/CLAUDE.md before changing it.\n",
+	);
+	expect(readFileSync(join(nestedDirectory, "GEMINI.md"), "utf8")).toBe(
+		"Read skills/example/GEMINI.md before changing it.\n",
+	);
+	const exclude = readFileSync(
+		join(worktree, ".git", "info", "exclude"),
+		"utf8",
+	);
+	expect(exclude).toContain("skills/example/CLAUDE.md");
+	expect(exclude).toContain("skills/example/GEMINI.md");
+});
+
 test("does nothing when AGENTS.md is absent", () => {
 	const worktree = createWorktree();
 

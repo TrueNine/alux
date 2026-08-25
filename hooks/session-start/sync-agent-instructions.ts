@@ -3,20 +3,40 @@
 import {
 	existsSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 const derivedFiles = ["CLAUDE.md", "GEMINI.md"] as const;
+const ignoredDirectories = new Set([".git", "node_modules"]);
 
-function appendExcludedFiles(excludePath: string): void {
+function findAgentInstructionFiles(worktree: string): string[] {
+	const agentFiles: string[] = [];
+
+	function visit(directory: string): void {
+		for (const entry of readdirSync(directory, { withFileTypes: true })) {
+			const path = join(directory, entry.name);
+			if (entry.isDirectory()) {
+				if (!ignoredDirectories.has(entry.name)) visit(path);
+				continue;
+			}
+			if (entry.isFile() && entry.name === "AGENTS.md") agentFiles.push(path);
+		}
+	}
+
+	visit(worktree);
+	return agentFiles;
+}
+
+function appendExcludedFiles(excludePath: string, files: string[]): void {
 	const existing = existsSync(excludePath)
 		? readFileSync(excludePath, "utf8")
 		: "";
 	const entries = existing.split(/\r?\n/);
-	const missing = derivedFiles.filter((file) => !entries.includes(file));
+	const missing = files.filter((file) => !entries.includes(file));
 	if (missing.length === 0) return;
 
 	const separator = existing && !existing.endsWith("\n") ? "\n" : "";
@@ -25,12 +45,20 @@ function appendExcludedFiles(excludePath: string): void {
 
 export function synchronizeAgentInstructions(worktree: string): void {
 	try {
-		const agentsPath = join(worktree, "AGENTS.md");
-		if (!existsSync(agentsPath)) return;
+		const agentsFiles = findAgentInstructionFiles(worktree);
+		if (agentsFiles.length === 0) return;
 
-		const agents = readFileSync(agentsPath, "utf8");
-		for (const file of derivedFiles) {
-			writeFileSync(join(worktree, file), agents.replaceAll("AGENTS.md", file));
+		const derivedPaths: string[] = [];
+		for (const agentsPath of agentsFiles) {
+			const agents = readFileSync(agentsPath, "utf8");
+			const instructionDirectory = dirname(agentsPath);
+			for (const file of derivedFiles) {
+				const derivedPath = join(instructionDirectory, file);
+				writeFileSync(derivedPath, agents.replaceAll("AGENTS.md", file));
+				derivedPaths.push(
+					relative(worktree, derivedPath).replaceAll("\\", "/"),
+				);
+			}
 		}
 
 		const gitDirectory = join(worktree, ".git");
@@ -39,7 +67,7 @@ export function synchronizeAgentInstructions(worktree: string): void {
 
 		const infoDirectory = join(gitDirectory, "info");
 		mkdirSync(infoDirectory, { recursive: true });
-		appendExcludedFiles(join(infoDirectory, "exclude"));
+		appendExcludedFiles(join(infoDirectory, "exclude"), derivedPaths);
 	} catch {
 		// SessionStart must not prevent Claude from starting when local files are unavailable.
 	}
