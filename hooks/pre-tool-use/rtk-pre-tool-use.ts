@@ -3,8 +3,14 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { rewritePowerShellGetContent } from "./powershell-get-content-utf8";
+import "../shared/log";
 
 type JsonObject = Record<string, unknown>;
+const platform = process.argv.includes("--claude")
+	? "claude"
+	: process.argv.includes("--codex")
+		? "codex"
+		: undefined;
 type CommandRewriter = (
 	command: string,
 	platform?: NodeJS.Platform,
@@ -67,6 +73,19 @@ async function main(): Promise<void> {
 		const payload = JSON.parse(
 			new TextDecoder().decode(await Bun.stdin.arrayBuffer()),
 		) as JsonObject;
+		const toolName =
+			typeof payload.tool_name === "string"
+				? payload.tool_name
+				: typeof payload.toolName === "string"
+					? payload.toolName
+					: "";
+		if (
+			!platform ||
+			(platform === "claude"
+				? toolName !== "Bash"
+				: !["Bash", "exec", "exec_command", "unified_exec"].includes(toolName))
+		)
+			return;
 		const input = asObject(payload.tool_input) ?? asObject(payload.toolInput);
 		const command = commandFrom(input);
 		if (!command) return;

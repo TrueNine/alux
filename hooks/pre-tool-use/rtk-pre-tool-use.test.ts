@@ -24,7 +24,25 @@ test("PreToolUse invokes the Bun TypeScript entrypoint", () => {
 		hooks: [
 			{
 				type: "command",
-				command: `bun "\${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts"`,
+				command: `bun "\${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --codex`,
+				statusMessage: "PowerShell UTF-8 and RTK preprocessing",
+			},
+		],
+	});
+});
+
+test("Claude PreToolUse only matches Bash", () => {
+	const configuration = JSON.parse(
+		readFileSync(join(hooksDirectory, "hooks.claude.json"), "utf8"),
+	);
+	const group = configuration.hooks.PreToolUse[0];
+
+	expect(group).toEqual({
+		matcher: "^Bash$",
+		hooks: [
+			{
+				type: "command",
+				command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --claude`,
 				statusMessage: "PowerShell UTF-8 and RTK preprocessing",
 			},
 		],
@@ -83,6 +101,24 @@ test("does not touch the marker for unrelated commands or non-Windows platforms"
 	} finally {
 		rmSync(localAppData, { recursive: true, force: true });
 	}
+});
+
+test("Claude TypeScript entrypoint ignores non-Bash tools", () => {
+	const result = Bun.spawnSync({
+		cmd: ["bun", entrypoint, "--claude"],
+		stdin: new TextEncoder().encode(
+			JSON.stringify({
+				tool_name: "Read",
+				tool_input: { command: "Get-Content README.md" },
+			}),
+		),
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+
+	expect(result.exitCode).toBe(0);
+	expect(new TextDecoder().decode(result.stdout)).toBe("");
+	expect(new TextDecoder().decode(result.stderr)).toBe("");
 });
 
 test("TypeScript entrypoint is a fail-open no-op for invalid input", () => {

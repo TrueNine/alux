@@ -17,7 +17,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bun \"${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\"",
+						"command": "bun \"${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\" --codex",
 						"statusMessage": "PowerShell UTF-8 and RTK preprocessing"
 					}
 				]
@@ -29,7 +29,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bun \"${PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\"",
+						"command": "bun \"${PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --codex",
 						"statusMessage": "RTK output compaction"
 					}
 				]

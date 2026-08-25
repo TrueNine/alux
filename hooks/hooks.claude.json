@@ -13,11 +13,11 @@
 		],
 		"PreToolUse": [
 			{
-				"matcher": "^(Bash|exec|exec_command|unified_exec)$",
+				"matcher": "^Bash$",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\"",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\" --claude",
 						"statusMessage": "PowerShell UTF-8 and RTK preprocessing"
 					}
 				]
@@ -25,11 +25,11 @@
 		],
 		"PostToolUse": [
 			{
-				"matcher": "^(Bash|exec|exec_command|unified_exec)$",
+				"matcher": "^Bash$",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\"",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --claude",
 						"statusMessage": "RTK output compaction"
 					}
 				]

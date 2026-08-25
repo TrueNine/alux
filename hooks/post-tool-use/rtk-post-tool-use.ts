@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 // GitHub: https://github.com/rtk-ai/rtk
 // Documentation: https://github.com/rtk-ai/rtk/blob/develop/hooks/README.md
+import "../shared/log";
 
 const shellTools = new Set([
 	"Bash",
@@ -10,6 +11,11 @@ const shellTools = new Set([
 	"unified_exec",
 	"write_stdin",
 ]);
+const platform = process.argv.includes("--claude")
+	? "claude"
+	: process.argv.includes("--codex")
+		? "codex"
+		: undefined;
 const replaySafeCommands = [
 	/^(?:ls|tree|rg|grep|find|cat|sed|head|tail|nl|wc)(?:\s|$)/,
 	/^git\s+(?:status|diff|log|show|branch|remote)(?:\s|$)/,
@@ -183,7 +189,12 @@ async function main(): Promise<void> {
 			: typeof payload.toolName === "string"
 				? payload.toolName
 				: "";
-	if (toolName && !shellTools.has(toolName)) return;
+	if (
+		!platform ||
+		!toolName ||
+		(platform === "claude" ? toolName !== "Bash" : !shellTools.has(toolName))
+	)
+		return;
 	const input = asObject(payload.tool_input) ?? asObject(payload.toolInput);
 	const response =
 		asObject(payload.tool_response) ??

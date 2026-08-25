@@ -16,7 +16,7 @@ test("PreToolUse uses one combined entrypoint to guarantee ordering", () => {
 	);
 
 	expect(commands).toEqual([
-		`bun "\${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts"`,
+		`bun "\${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --codex`,
 	]);
 });
 
@@ -62,7 +62,7 @@ test.skipIf(process.platform !== "win32")(
 			},
 		};
 		const result = Bun.spawnSync({
-			cmd: ["bun", entrypoint],
+			cmd: ["bun", entrypoint, "--codex"],
 			stdin: new TextEncoder().encode(JSON.stringify(payload)),
 			stdout: "pipe",
 			stderr: "pipe",
