@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Design Contract"
+  short_description: "Create and enforce DESIGN.md contracts"
+  default_prompt: "Use $alux-designmd to check AGENTS.md and DESIGN.md, follow the declared frontend design contract, correct implementation drift, and validate contract changes with diff, lint, accessibility, and project checks."
