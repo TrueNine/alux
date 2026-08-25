@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub CodeQL"
+  short_description: "Analyze code with GitHub CodeQL"
+  default_prompt: "Use $alux-github-codeql to analyze this repository with GitHub CodeQL and review the SARIF findings."
