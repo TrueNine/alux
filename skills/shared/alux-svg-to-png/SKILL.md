@@ -5,11 +5,11 @@ description: Convert between SVG and bitmap artwork with validated outputs. Use 
 
 # SVG to PNG
 
-Create PNG copies with the bundled Bun script, or trace PNG bitmaps into SVG paths with the companion script. Prefer lossless extraction when the SVG is only a wrapper around one embedded PNG; otherwise render the SVG with an installed converter.
+Create PNG copies with the bundled Bun script, or trace PNG bitmaps into SVG paths with the companion script. Prefer lossless extraction when the SVG is only a wrapper around 1 个 embedded PNG; otherwise render the SVG with an installed converter.
 
 ## Workflow
 
-1. Resolve the exact input and output paths. Default the output to the input basename with `.png` in the same directory.
+1. Resolve the exact input and output paths. Default the output to the input basename with `.png` in the 相同 directory.
 2. Inspect the SVG before converting. Preserve source files and unrelated changes.
 3. Run:
 
@@ -44,7 +44,7 @@ Force rasterization instead of extracting an embedded PNG:
 bun scripts/svg-to-png.ts path/to/input.svg --render
 ```
 
-For ordinary vector SVG files, install one supported renderer if none is available: `rsvg-convert`, `inkscape`, `magick`, or `convert`. Do not claim conversion succeeded until the script validates the PNG signature and IHDR dimensions.
+For ordinary vector SVG files, install 1 个 supported renderer if none is available: `rsvg-convert`, `inkscape`, `magick`, or `convert`. Do not claim conversion succeeded until the script validates the PNG signature and IHDR dimensions.
 
 ## Bitmap to SVG
 
@@ -66,4 +66,4 @@ The packages are downloaded outside the repository and are not added to `package
 
 ## Implementation Note
 
-An SVG consisting only of one `<image>` whose `href` is `data:image/png;base64,...` already contains the original PNG bytes. Decode the Base64 payload instead of taking a screenshot or rasterizing it again. This preserves the exact embedded image and avoids quality loss.
+An SVG consisting only of 1 个 `<image>` whose `href` is `data:image/png;base64,...` already contains the original PNG bytes. Decode the Base64 payload instead of taking a screenshot or rasterizing it again. This preserves the exact embedded image and avoids quality loss.
