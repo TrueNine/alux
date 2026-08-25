@@ -65,6 +65,140 @@ test("derives nested Claude and Gemini instructions", () => {
 	expect(exclude).toContain("skills/example/GEMINI.md");
 });
 
+test("derives instructions at every nested directory depth", () => {
+	const worktree = createWorktree();
+	const nestedDirectory = join(worktree, "one", "two", "three", "four", "five");
+	mkdirSync(nestedDirectory, { recursive: true });
+	writeFileSync(join(nestedDirectory, "AGENTS.md"), "Use AGENTS.md.\n");
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(readFileSync(join(nestedDirectory, "CLAUDE.md"), "utf8")).toBe(
+		"Use CLAUDE.md.\n",
+	);
+	expect(readFileSync(join(nestedDirectory, "GEMINI.md"), "utf8")).toBe(
+		"Use GEMINI.md.\n",
+	);
+});
+
+test("finds every AGENTS.md when SessionStart begins in a nested directory", () => {
+	const worktree = createWorktree();
+	const secondLevel = join(worktree, "one", "two");
+	const fifthLevel = join(secondLevel, "three", "four", "five");
+	mkdirSync(fifthLevel, { recursive: true });
+	writeFileSync(join(worktree, "AGENTS.md"), "Root AGENTS.md.\n");
+	writeFileSync(join(secondLevel, "AGENTS.md"), "Second AGENTS.md.\n");
+	writeFileSync(join(fifthLevel, "AGENTS.md"), "Fifth AGENTS.md.\n");
+
+	synchronizeAgentInstructions(join(worktree, "one"));
+
+	for (const directory of [worktree, secondLevel, fifthLevel]) {
+		expect(readFileSync(join(directory, "CLAUDE.md"), "utf8")).toContain(
+			"CLAUDE.md",
+		);
+		expect(readFileSync(join(directory, "GEMINI.md"), "utf8")).toContain(
+			"GEMINI.md",
+		);
+	}
+});
+
+test("synchronizes initialized submodules into their own Git exclude", () => {
+	const worktree = createWorktree();
+	const submodule = join(worktree, "vendor", "module");
+	const submoduleGitDirectory = join(
+		worktree,
+		".git",
+		"modules",
+		"vendor",
+		"module",
+	);
+	const nestedDirectory = join(submodule, "docs", "guide");
+	mkdirSync(nestedDirectory, { recursive: true });
+	mkdirSync(submoduleGitDirectory, { recursive: true });
+	writeFileSync(join(submodule, ".git"), `gitdir: ${submoduleGitDirectory}\n`);
+	writeFileSync(
+		join(nestedDirectory, "AGENTS.md"),
+		"Submodule docs/guide/AGENTS.md.\n",
+	);
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(readFileSync(join(nestedDirectory, "CLAUDE.md"), "utf8")).toBe(
+		"Submodule docs/guide/CLAUDE.md.\n",
+	);
+	expect(readFileSync(join(nestedDirectory, "GEMINI.md"), "utf8")).toBe(
+		"Submodule docs/guide/GEMINI.md.\n",
+	);
+	const submoduleExclude = readFileSync(
+		join(submoduleGitDirectory, "info", "exclude"),
+		"utf8",
+	);
+	expect(submoduleExclude).toContain("docs/guide/CLAUDE.md");
+	expect(submoduleExclude).toContain("docs/guide/GEMINI.md");
+	expect(existsSync(join(worktree, ".git", "info", "exclude"))).toBe(false);
+});
+
+test("ignores uninitialized submodule Git metadata safely", () => {
+	const worktree = createWorktree();
+	const submodule = join(worktree, "vendor", "module");
+	mkdirSync(submodule, { recursive: true });
+	writeFileSync(
+		join(submodule, ".git"),
+		"gitdir: ../../.git/modules/vendor/module\n",
+	);
+	writeFileSync(join(submodule, "AGENTS.md"), "Submodule AGENTS.md.\n");
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(readFileSync(join(submodule, "CLAUDE.md"), "utf8")).toBe(
+		"Submodule CLAUDE.md.\n",
+	);
+	expect(readFileSync(join(submodule, "GEMINI.md"), "utf8")).toBe(
+		"Submodule GEMINI.md.\n",
+	);
+	expect(existsSync(join(worktree, ".git", "modules"))).toBe(false);
+});
+
+test("uses the common Git exclude for linked worktrees", () => {
+	const worktree = mkdtempSync(join(tmpdir(), "alux-linked-worktree-"));
+	const commonGitDirectory = join(worktree, "common.git");
+	const linkedGitDirectory = join(commonGitDirectory, "worktrees", "linked");
+	mkdirSync(linkedGitDirectory, { recursive: true });
+	mkdirSync(join(worktree, "nested", "directory"), { recursive: true });
+	writeFileSync(join(worktree, ".git"), `gitdir: ${linkedGitDirectory}\n`);
+	writeFileSync(join(linkedGitDirectory, "commondir"), "../..\n");
+	writeFileSync(
+		join(worktree, "nested", "directory", "AGENTS.md"),
+		"AGENTS.md\n",
+	);
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(
+		readFileSync(join(commonGitDirectory, "info", "exclude"), "utf8"),
+	).toContain("nested/directory/CLAUDE.md");
+	expect(
+		readFileSync(join(commonGitDirectory, "info", "exclude"), "utf8"),
+	).toContain("nested/directory/GEMINI.md");
+	expect(existsSync(join(linkedGitDirectory, "info", "exclude"))).toBe(false);
+});
+
+test("escapes Git ignore metacharacters in derived paths", () => {
+	const worktree = createWorktree();
+	const nestedDirectory = join(worktree, "skills", "[legacy]", "#draft");
+	mkdirSync(nestedDirectory, { recursive: true });
+	writeFileSync(join(nestedDirectory, "AGENTS.md"), "AGENTS.md\n");
+
+	synchronizeAgentInstructions(worktree);
+
+	const exclude = readFileSync(
+		join(worktree, ".git", "info", "exclude"),
+		"utf8",
+	);
+	expect(exclude).toContain("skills/\\[legacy\\]/\\#draft/CLAUDE.md");
+	expect(exclude).toContain("skills/\\[legacy\\]/\\#draft/GEMINI.md");
+});
+
 test("does nothing when AGENTS.md is absent", () => {
 	const worktree = createWorktree();
 
