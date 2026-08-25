@@ -138,6 +138,23 @@ test("synchronizes initialized submodules into their own Git exclude", () => {
 	expect(existsSync(join(worktree, ".git", "info", "exclude"))).toBe(false);
 });
 
+test("uses a standalone nested repository's own Git exclude", () => {
+	const worktree = createWorktree();
+	const nestedRepository = join(worktree, "vendor", "standalone");
+	mkdirSync(join(nestedRepository, ".git", "info"), { recursive: true });
+	writeFileSync(join(nestedRepository, "AGENTS.md"), "Standalone AGENTS.md.\n");
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(
+		readFileSync(join(nestedRepository, ".git", "info", "exclude"), "utf8"),
+	).toContain("CLAUDE.md");
+	expect(
+		readFileSync(join(nestedRepository, ".git", "info", "exclude"), "utf8"),
+	).toContain("GEMINI.md");
+	expect(existsSync(join(worktree, ".git", "info", "exclude"))).toBe(false);
+});
+
 test("ignores uninitialized submodule Git metadata safely", () => {
 	const worktree = createWorktree();
 	const submodule = join(worktree, "vendor", "module");
@@ -157,6 +174,46 @@ test("ignores uninitialized submodule Git metadata safely", () => {
 		"Submodule GEMINI.md.\n",
 	);
 	expect(existsSync(join(worktree, ".git", "modules"))).toBe(false);
+});
+
+test("uses a submodule's common Git exclude when commondir exists", () => {
+	const worktree = createWorktree();
+	const submodule = join(worktree, "vendor", "module");
+	const submoduleGitDirectory = join(
+		worktree,
+		".git",
+		"modules",
+		"vendor",
+		"module",
+		"worktrees",
+		"linked",
+	);
+	mkdirSync(submodule, { recursive: true });
+	mkdirSync(join(submoduleGitDirectory, "info"), { recursive: true });
+	writeFileSync(
+		join(submodule, ".git"),
+		"gitdir: ../../.git/modules/vendor/module/worktrees/linked\n",
+	);
+	writeFileSync(join(submoduleGitDirectory, "commondir"), "../..\n");
+	writeFileSync(join(submodule, "AGENTS.md"), "Submodule AGENTS.md.\n");
+
+	synchronizeAgentInstructions(worktree);
+
+	expect(
+		readFileSync(
+			join(worktree, ".git", "modules", "vendor", "module", "info", "exclude"),
+			"utf8",
+		),
+	).toContain("CLAUDE.md");
+	expect(
+		readFileSync(
+			join(worktree, ".git", "modules", "vendor", "module", "info", "exclude"),
+			"utf8",
+		),
+	).toContain("GEMINI.md");
+	expect(existsSync(join(submoduleGitDirectory, "info", "exclude"))).toBe(
+		false,
+	);
 });
 
 test("uses the common Git exclude for linked worktrees", () => {
