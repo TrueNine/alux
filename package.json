@@ -3,10 +3,10 @@
 	"version": "0.0.5",
 	"private": true,
 	"license": "AGPL-3.0-or-later",
-	"packageManager": "bun@1.3.14",
+	"packageManager": "bun@1.4.0",
 	"scripts": {
 		"prepare": "husky",
-		"postinstall": "husky",
+		"postinstall": "husky && bun run sync:skills",
 		"sync:skills": "bun scripts/mixining-shared-skills-to-native-skills.ts",
 		"lint": "biome check .",
 		"lint:fix": "biome lint --write .",

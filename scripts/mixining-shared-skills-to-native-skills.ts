@@ -25,7 +25,7 @@ async function directoriesWithin(path: string): Promise<string[]> {
 		.sort((left, right) => left.localeCompare(right));
 }
 
-/** Copies shared skills without allowing an existing native skill to be overwritten. */
+/** Synchronizes shared skills while preserving platform-specific files. */
 export async function mixSharedSkills(
 	skillsRoot: string,
 ): Promise<MixSharedSkillsResult> {
@@ -46,29 +46,12 @@ export async function mixSharedSkills(
 		throw new Error(`No native skills directories found under: ${skillsRoot}`);
 	}
 
-	const conflicts: string[] = [];
-	for (const targetDirectory of targetDirectories) {
-		for (const skill of sharedSkills) {
-			if (
-				targetDirectory !== "codex-skills" &&
-				(await exists(join(skillsRoot, targetDirectory, skill)))
-			) {
-				conflicts.push(`${skill} in ${targetDirectory}`);
-			}
-		}
-	}
-	if (conflicts.length > 0) {
-		throw new Error(
-			`Cannot copy shared skills because same-named skills already exist: ${conflicts.join(", ")}`,
-		);
-	}
-
 	for (const targetDirectory of targetDirectories) {
 		for (const skill of sharedSkills) {
 			await cp(
 				join(sharedRoot, skill),
 				join(skillsRoot, targetDirectory, skill),
-				{ recursive: true, errorOnExist: true, force: false },
+				{ recursive: true, force: true },
 			);
 		}
 	}

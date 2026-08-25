@@ -71,25 +71,24 @@ describe("mixSharedSkills", () => {
 		}
 	});
 
-	test("rejects a same-named skill before changing any managed directory", async () => {
+	test("updates existing shared skill files", async () => {
 		const root = await createSkillsRoot();
 		await mkdir(join(root, "claude-skills", "example-skill"), {
 			recursive: true,
 		});
 		await writeFile(
 			join(root, "claude-skills", "example-skill", "SKILL.md"),
-			"native skill",
+			"outdated shared skill",
 		);
 
-		await expect(mixSharedSkills(root)).rejects.toThrow(
-			/example-skill.*claude-skills/,
-		);
+		await mixSharedSkills(root);
+
 		expect(
 			await readFile(
 				join(root, "claude-skills", "example-skill", "SKILL.md"),
 				"utf8",
 			),
-		).toBe("native skill");
+		).toBe("shared skill");
 	});
 
 	test("merges shared skills into Codex while preserving agent manifests", async () => {
