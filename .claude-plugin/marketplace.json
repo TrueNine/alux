@@ -1,20 +1,20 @@
 {
-	"$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-	"name": "alux",
-	"description": "Shared skills and workflows for AI coding agents",
-	"owner": {
-		"name": "TrueNine",
-		"email": "truenine304520@gmail.com"
-	},
-	"plugins": [
-		{
-			"name": "alux",
-			"description": "Shared skills and workflows for Claude Code",
-			"author": {
-				"name": "TrueNine",
-				"email": "truenine304520@gmail.com"
-			},
-			"source": "./"
-		}
-	]
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "alux",
+  "description": "Shared skills and workflows for AI coding agents",
+  "owner": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "alux",
+      "description": "Shared skills and workflows for Claude Code",
+      "author": {
+        "name": "TrueNine",
+        "email": "truenine304520@gmail.com"
+      },
+      "source": "./"
+    }
+  ]
 }

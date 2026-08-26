@@ -1,3 +1,9 @@
+## 0.0.8 - 2026-08-27
+
+- 添加 Cursor 原生插件清单、共享技能发布和本地插件安装说明。
+- 集成 `hooks.cursor.json`，覆盖指令同步、PowerShell UTF-8、RTK 预处理和输出压缩流程。
+- 增加 Cursor 插件路径、hooks 协议与技能 frontmatter 校验。
+
 ## 0.0.7 - 2026-08-26
 
 - 自动将生成的 `CLAUDE.md` 和 `GEMINI.md` 添加到所属 Git 仓库的本地排除规则。

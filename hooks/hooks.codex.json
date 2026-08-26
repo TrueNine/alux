@@ -1,39 +1,39 @@
 {
-	"hooks": {
-		"SessionStart": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts\"",
-						"statusMessage": "Synchronizing local agent instructions"
-					}
-				]
-			}
-		],
-		"PreToolUse": [
-			{
-				"matcher": "^(Bash|exec|exec_command|unified_exec)$",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\" --codex",
-						"statusMessage": "PowerShell UTF-8 and RTK preprocessing"
-					}
-				]
-			}
-		],
-		"PostToolUse": [
-			{
-				"matcher": "^(Bash|exec|exec_command|unified_exec)$",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --codex",
-						"statusMessage": "RTK output compaction"
-					}
-				]
-			}
-		]
-	}
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"${PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts\"",
+            "statusMessage": "Synchronizing local agent instructions"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|exec|exec_command|unified_exec)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"${PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\" --codex",
+            "statusMessage": "PowerShell UTF-8 and RTK preprocessing"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(Bash|exec|exec_command|unified_exec)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"${PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --codex",
+            "statusMessage": "RTK output compaction"
+          }
+        ]
+      }
+    ]
+  }
 }

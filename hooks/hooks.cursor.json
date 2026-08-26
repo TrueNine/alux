@@ -1,4 +1,22 @@
 {
-	"version": 1,
-	"hooks": {}
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "bun \"${CURSOR_PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts\""
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "bun \"${CURSOR_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts\" --cursor",
+        "matcher": "^Shell$"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "bun \"${CURSOR_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --cursor",
+        "matcher": "^Shell$"
+      }
+    ]
+  }
 }

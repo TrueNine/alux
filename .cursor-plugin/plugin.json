@@ -1,16 +1,19 @@
 {
-	"name": "alux",
-	"displayName": "Alux",
-	"description": "Shared skills and workflows for AI coding agents",
-	"version": "0.0.7",
-	"author": {
-		"name": "TrueNine",
-		"email": "truenine304520@gmail.com"
-	},
-	"homepage": "https://github.com/TrueNine/alux",
-	"repository": "https://github.com/TrueNine/alux",
-	"license": "AGPL-3.0-or-later",
-	"keywords": ["skills", "coding-agents", "workflows", "cursor"],
-	"skills": "./skills/cursor-skills",
-	"hooks": "./hooks/hooks.cursor.json"
+  "name": "alux",
+  "displayName": "Alux",
+  "description": "Shared skills and workflows for AI coding agents",
+  "version": "0.0.8",
+  "author": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com"
+  },
+  "homepage": "https://github.com/TrueNine/alux",
+  "repository": "https://github.com/TrueNine/alux",
+  "license": "AGPL-3.0-or-later",
+  "logo": "assets/logo.svg",
+  "keywords": ["skills", "coding-agents", "workflows", "cursor"],
+  "category": "developer-tools",
+  "tags": ["agent-skills", "agent-instructions", "developer-workflows"],
+  "skills": "./skills/cursor-skills",
+  "hooks": "./hooks/hooks.cursor.json"
 }

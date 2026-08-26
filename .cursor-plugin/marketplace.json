@@ -1,0 +1,17 @@
+{
+  "name": "alux",
+  "owner": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com"
+  },
+  "metadata": {
+    "description": "Alux Cursor plugin marketplace"
+  },
+  "plugins": [
+    {
+      "name": "alux",
+      "source": ".",
+      "description": "Shared skills and workflows for AI coding agents"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ assets/*
 .codegraph/
 **/.jqwik-database/
 node_modules/
+coverage/
 
 ### STS ###
 .apt_generated
