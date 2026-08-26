@@ -9,11 +9,10 @@ import {
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const derivedFiles = ["CLAUDE.md", "GEMINI.md"] as const;
 const ignoredDirectories = new Set([".git", "node_modules"]);
-const gitIgnoreMetacharacters = new Set(["\\", "*", "?", "[", "]", "#", "!"]);
 
 function findInstructionRoot(workingDirectory: string): string {
 	const initialDirectory = resolve(workingDirectory);
@@ -96,25 +95,12 @@ function gitExcludePath(worktree: string): string | undefined {
 	}
 }
 
-function escapeGitIgnorePath(path: string): string {
-	const escaped = [...path]
-		.map((character) =>
-			gitIgnoreMetacharacters.has(character) ? `\\${character}` : character,
-		)
-		.join("");
-	return escaped.replace(/ +$/g, (spaces) =>
-		[...spaces].map(() => "\\ ").join(""),
-	);
-}
-
 function appendExcludedFiles(excludePath: string, files: string[]): void {
 	const existing = existsSync(excludePath)
 		? readFileSync(excludePath, "utf8")
 		: "";
 	const entries = existing.split(/\r?\n/);
-	const missing = files
-		.map(escapeGitIgnorePath)
-		.filter((file) => !entries.includes(file));
+	const missing = files.filter((file) => !entries.includes(file));
 	if (missing.length === 0) return;
 
 	const separator = existing && !existing.endsWith("\n") ? "\n" : "";
@@ -127,7 +113,7 @@ export function synchronizeAgentInstructions(workingDirectory: string): void {
 		const agentsFiles = findAgentInstructionFiles(worktree);
 		if (agentsFiles.length === 0) return;
 
-		const derivedPathsByRepository = new Map<string, string[]>();
+		const repositories = new Set<string>();
 		for (const agentsPath of agentsFiles) {
 			let agents: string;
 			try {
@@ -138,28 +124,23 @@ export function synchronizeAgentInstructions(workingDirectory: string): void {
 
 			const instructionDirectory = dirname(agentsPath);
 			const repository = findRepositoryRoot(instructionDirectory, worktree);
-			const derivedPaths = derivedPathsByRepository.get(repository) ?? [];
+			repositories.add(repository);
 			for (const file of derivedFiles) {
 				try {
 					const derivedPath = join(instructionDirectory, file);
 					writeFileSync(derivedPath, agents.replaceAll("AGENTS.md", file));
-					derivedPaths.push(
-						relative(repository, derivedPath).replaceAll("\\", "/"),
-					);
 				} catch {
 					// Continue synchronizing other instruction files when one is unavailable.
 				}
 			}
-			if (derivedPaths.length > 0)
-				derivedPathsByRepository.set(repository, derivedPaths);
 		}
 
-		for (const [repository, derivedPaths] of derivedPathsByRepository) {
+		for (const repository of repositories) {
 			try {
 				const excludePath = gitExcludePath(repository);
 				if (!excludePath) continue;
 				mkdirSync(dirname(excludePath), { recursive: true });
-				appendExcludedFiles(excludePath, derivedPaths);
+				appendExcludedFiles(excludePath, [...derivedFiles]);
 			} catch {
 				// Continue updating other repositories when one Git directory is unavailable.
 			}

@@ -61,8 +61,8 @@ test("derives nested Claude and Gemini instructions", () => {
 		join(worktree, ".git", "info", "exclude"),
 		"utf8",
 	);
-	expect(exclude).toContain("skills/example/CLAUDE.md");
-	expect(exclude).toContain("skills/example/GEMINI.md");
+	expect(exclude).toMatch(/^CLAUDE\.md$/m);
+	expect(exclude).toMatch(/^GEMINI\.md$/m);
 });
 
 test("derives instructions at every nested directory depth", () => {
@@ -133,8 +133,8 @@ test("synchronizes initialized submodules into their own Git exclude", () => {
 		join(submoduleGitDirectory, "info", "exclude"),
 		"utf8",
 	);
-	expect(submoduleExclude).toContain("docs/guide/CLAUDE.md");
-	expect(submoduleExclude).toContain("docs/guide/GEMINI.md");
+	expect(submoduleExclude).toMatch(/^CLAUDE\.md$/m);
+	expect(submoduleExclude).toMatch(/^GEMINI\.md$/m);
 	expect(existsSync(join(worktree, ".git", "info", "exclude"))).toBe(false);
 });
 
@@ -233,14 +233,14 @@ test("uses the common Git exclude for linked worktrees", () => {
 
 	expect(
 		readFileSync(join(commonGitDirectory, "info", "exclude"), "utf8"),
-	).toContain("nested/directory/CLAUDE.md");
+	).toMatch(/^CLAUDE\.md$/m);
 	expect(
 		readFileSync(join(commonGitDirectory, "info", "exclude"), "utf8"),
-	).toContain("nested/directory/GEMINI.md");
+	).toMatch(/^GEMINI\.md$/m);
 	expect(existsSync(join(linkedGitDirectory, "info", "exclude"))).toBe(false);
 });
 
-test("escapes Git ignore metacharacters in derived paths", () => {
+test("uses repository-wide excludes for derived instruction names", () => {
 	const worktree = createWorktree();
 	const nestedDirectory = join(worktree, "skills", "[legacy]", "#draft");
 	mkdirSync(nestedDirectory, { recursive: true });
@@ -252,8 +252,8 @@ test("escapes Git ignore metacharacters in derived paths", () => {
 		join(worktree, ".git", "info", "exclude"),
 		"utf8",
 	);
-	expect(exclude).toContain("skills/\\[legacy\\]/\\#draft/CLAUDE.md");
-	expect(exclude).toContain("skills/\\[legacy\\]/\\#draft/GEMINI.md");
+	expect(exclude).toMatch(/^CLAUDE\.md$/m);
+	expect(exclude).toMatch(/^GEMINI\.md$/m);
 });
 
 test("does nothing when AGENTS.md is absent", () => {
