@@ -140,7 +140,7 @@ export function proxyInvocation(command: string): string[] {
 }
 
 function summarize(output: string): string | undefined {
-	if (output.length < 2400) return;
+	if (output.length < 500) return;
 	const lines = output.split("\n").filter(Boolean);
 	const retained = [
 		...lines.slice(0, 35),
