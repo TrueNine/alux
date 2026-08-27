@@ -45,6 +45,13 @@ describe('agent instruction normalization', () => {
     expect(normalizeInstructionText(structure)).toBe(structure);
   });
 
+  it('preserves exact submodule wrapper markers without a space after the colon', () => {
+    const structure = `<!-- BEGIN_SUBMODULE:frontend/AGENTS.md -->
+# frontend/AGENTS.md
+<!-- END_SUBMODULE:frontend/AGENTS.md -->`;
+    expect(normalizeInstructionText(structure)).toBe(structure);
+  });
+
   it('normalizes extended engineering vocabulary with longest matches', () => {
     expect(normalizeInstructionText('运行脚本并执行全套测试、所有测试与核心门禁。格式化后写入仓库，输出结果与退出代码。')).toBe(
       'run script 并 execution all tests, all tests and core gate. format 后 write repository, output result and exit code.',

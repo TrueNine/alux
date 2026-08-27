@@ -174,6 +174,7 @@ function protectedSpans(line: string): Span[] {
 function normalizeLine(line: string, vocabulary: Vocabulary): string {
   if (
     /^<!-- (?:BEGIN|END):.*AGENTS\.md -->$/.test(line) ||
+    /^<!-- (?:BEGIN|END)_SUBMODULE:[^\s].* -->$/.test(line) ||
     /^<!-- (?:BEGIN_GLOBAL|BEGINE_GLOBAL|END_GLOBAL):~\/\.codex\/ -->$/.test(line) ||
     /^# (?:~\/\.codex\/)?(?:.*\/)?AGENTS\.md(?::.*)?$/.test(line)
   ) {
