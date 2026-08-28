@@ -165,14 +165,34 @@ test('uses repository-wide excludes for derived instruction names', () => {
   expect(exclude).toMatch(/^GEMINI\.md$/m);
 });
 
-test('does nothing when AGENTS.md is absent', () => {
+test('removes orphaned Claude and Gemini instructions', () => {
   const worktree = createWorktree();
+  const orphanDirectory = join(worktree, 'docs');
+  const synchronizedDirectory = join(worktree, 'skills');
+  mkdirSync(orphanDirectory, { recursive: true });
+  mkdirSync(synchronizedDirectory, { recursive: true });
+  writeFileSync(join(orphanDirectory, 'CLAUDE.md'), 'stale Claude instructions\n');
+  writeFileSync(join(orphanDirectory, 'GEMINI.md'), 'stale Gemini instructions\n');
+  writeFileSync(join(synchronizedDirectory, 'AGENTS.md'), 'Current AGENTS.md\n');
+  writeFileSync(join(synchronizedDirectory, 'CLAUDE.md'), 'stale paired Claude instructions\n');
+
+  synchronizeAgentInstructions(worktree);
+
+  expect(existsSync(join(orphanDirectory, 'CLAUDE.md'))).toBe(false);
+  expect(existsSync(join(orphanDirectory, 'GEMINI.md'))).toBe(false);
+  expect(readFileSync(join(synchronizedDirectory, 'CLAUDE.md'), 'utf8')).toBe('Current CLAUDE.md\n');
+  expect(readFileSync(join(synchronizedDirectory, 'GEMINI.md'), 'utf8')).toBe('Current GEMINI.md\n');
+});
+
+test('removes orphaned instructions when AGENTS.md is absent', () => {
+  const worktree = createWorktree();
+  writeFileSync(join(worktree, 'CLAUDE.md'), 'stale Claude instructions\n');
+  writeFileSync(join(worktree, 'GEMINI.md'), 'stale Gemini instructions\n');
 
   synchronizeAgentInstructions(worktree);
 
   expect(existsSync(join(worktree, 'CLAUDE.md'))).toBe(false);
   expect(existsSync(join(worktree, 'GEMINI.md'))).toBe(false);
-  expect(existsSync(join(worktree, '.git', 'info', 'exclude'))).toBe(false);
 });
 
 test('does not create a Git directory outside a Git worktree', () => {

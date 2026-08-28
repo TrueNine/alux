@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { type Dirent, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { type Dirent, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 const derivedFiles = ['CLAUDE.md', 'GEMINI.md'] as const;
@@ -29,8 +29,8 @@ function findRepositoryRoot(directory: string, boundary: string): string {
   }
 }
 
-function findAgentInstructionFiles(worktree: string): string[] {
-  const agentFiles: string[] = [];
+function findInstructionFiles(worktree: string, fileNames: ReadonlySet<string>): string[] {
+  const files: string[] = [];
 
   function visit(directory: string): void {
     let entries: Dirent[];
@@ -47,7 +47,7 @@ function findAgentInstructionFiles(worktree: string): string[] {
           if (!ignoredDirectories.has(entry.name)) visit(path);
           continue;
         }
-        if ((entry.isFile() || entry.isSymbolicLink()) && entry.name === 'AGENTS.md') agentFiles.push(path);
+        if ((entry.isFile() || entry.isSymbolicLink()) && fileNames.has(entry.name)) files.push(path);
       } catch {
         // Ignore entries that disappear or become unavailable during traversal.
       }
@@ -55,7 +55,25 @@ function findAgentInstructionFiles(worktree: string): string[] {
   }
 
   visit(worktree);
-  return agentFiles;
+  return files;
+}
+
+function findAgentInstructionFiles(worktree: string): string[] {
+  return findInstructionFiles(worktree, new Set(['AGENTS.md']));
+}
+
+function removeOrphanedDerivedFiles(worktree: string, agentsFiles: string[]): void {
+  const agentDirectories = new Set(agentsFiles.map((path) => dirname(path)));
+  const derivedFilesInWorktree = findInstructionFiles(worktree, new Set(derivedFiles));
+
+  for (const derivedPath of derivedFilesInWorktree) {
+    if (agentDirectories.has(dirname(derivedPath))) continue;
+    try {
+      unlinkSync(derivedPath);
+    } catch {
+      // Continue removing other orphaned instruction files when one is unavailable.
+    }
+  }
 }
 
 function gitExcludePath(worktree: string): string | undefined {
@@ -96,6 +114,7 @@ export function synchronizeAgentInstructions(workingDirectory: string): void {
   try {
     const worktree = findInstructionRoot(workingDirectory);
     const agentsFiles = findAgentInstructionFiles(worktree);
+    removeOrphanedDerivedFiles(worktree, agentsFiles);
     if (agentsFiles.length === 0) return;
 
     const repositories = new Set<string>();
