@@ -1,3 +1,8 @@
+## 0.0.10 - 2026-08-28
+
+- 在 SessionStart 同步时删除没有对应 `AGENTS.md` 的孤单 `CLAUDE.md` 和 `GEMINI.md` 文件。
+- 增加孤单指令文件清理逻辑的自动化测试。
+
 ## 0.0.9 - 2026-08-27
 
 - 修复 `BEGIN_SUBMODULE:` 和 `END_SUBMODULE:` 包装标记的规范化逻辑，保留冒号后的无空格格式。
