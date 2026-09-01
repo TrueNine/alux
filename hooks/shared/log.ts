@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { inspect } from 'node:util';
 import { emitLogSound, type SoundLogLevel, type SoundLogOptions } from './sound-log';
 
-export type LogPlatform = 'claude' | 'codex' | 'cursor';
+export type LogPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
 export type LogLevel = SoundLogLevel;
 
 export type LogRecord = {
@@ -60,6 +60,7 @@ export function platformFromArgv(argv: readonly string[] = process.argv): LogPla
   if (argv.includes('--claude')) return 'claude';
   if (argv.includes('--codex')) return 'codex';
   if (argv.includes('--cursor')) return 'cursor';
+  if (argv.includes('--cline')) return 'cline';
 }
 
 export function appendLogRecord(logFile: string, record: LogRecord): boolean {

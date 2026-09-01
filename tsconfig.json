@@ -14,6 +14,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["hooks/**/*.ts", "scripts/**/*.ts", "skills/**/*.ts"],
+  "include": ["hooks/**/*.ts", "scripts/**/*.ts", "skills/**/*.ts", ".cline-plugin/**/*.ts"],
   "exclude": ["node_modules"]
 }

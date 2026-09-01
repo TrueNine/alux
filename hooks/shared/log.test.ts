@@ -11,10 +11,11 @@ function temporaryLogFile(): { directory: string; logFile: string } {
   return { directory, logFile: join(directory, 'nested', 'claude.jsonl') };
 }
 
-test('detects Claude, Codex, and Cursor modes from argv', () => {
+test('detects Claude, Codex, Cursor, and Cline modes from argv', () => {
   expect(platformFromArgv(['bun', 'hook.ts', '--claude'])).toBe('claude');
   expect(platformFromArgv(['bun', 'hook.ts', '--codex'])).toBe('codex');
   expect(platformFromArgv(['bun', 'hook.ts', '--cursor'])).toBe('cursor');
+  expect(platformFromArgv(['bun', 'hook.ts', '--cline'])).toBe('cline');
   expect(platformFromArgv(['bun', 'hook.ts'])).toBeUndefined();
 });
 

@@ -7,8 +7,17 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8';
 import '../shared/log';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor';
-const platform: HookPlatform | undefined = process.argv.includes('--claude') ? 'claude' : process.argv.includes('--codex') ? 'codex' : process.argv.includes('--cursor') ? 'cursor' : undefined;
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
+const platform: HookPlatform | undefined = process.argv.includes('--claude')
+  ? 'claude'
+  : process.argv.includes('--codex')
+    ? 'codex'
+    : process.argv.includes('--cursor')
+      ? 'cursor'
+      : process.argv.includes('--cline')
+        ? 'cline'
+        : undefined;
+const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
 type CommandOptimizer = (command: string, cwd?: string) => string | undefined;
@@ -70,7 +79,17 @@ async function main(): Promise<void> {
   try {
     const payload = JSON.parse(new TextDecoder().decode(await Bun.stdin.arrayBuffer())) as JsonObject;
     const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
-    if (!platform || (platform === 'claude' ? toolName !== 'Bash' : platform === 'cursor' ? toolName !== 'Shell' : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))) return;
+    if (
+      !platform ||
+      (platform === 'claude'
+        ? toolName !== 'Bash'
+        : platform === 'cursor'
+          ? toolName !== 'Shell'
+          : platform === 'cline'
+            ? !clineShellTools.has(toolName)
+            : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
+    )
+      return;
     const input = asObject(payload.tool_input) ?? asObject(payload.toolInput);
     const command = commandFrom(input);
     if (!command) return;

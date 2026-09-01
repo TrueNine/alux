@@ -6,15 +6,23 @@ import '../shared/log';
 
 export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk';
 
-const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'write_stdin']);
+const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor';
-const platform: HookPlatform | undefined = process.argv.includes('--claude') ? 'claude' : process.argv.includes('--codex') ? 'codex' : process.argv.includes('--cursor') ? 'cursor' : undefined;
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
+const platform: HookPlatform | undefined = process.argv.includes('--claude')
+  ? 'claude'
+  : process.argv.includes('--codex')
+    ? 'codex'
+    : process.argv.includes('--cursor')
+      ? 'cursor'
+      : process.argv.includes('--cline')
+        ? 'cline'
+        : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
 
-function text(value: unknown): string {
+export function text(value: unknown): string {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(text).filter(Boolean).join('\n');
   const object = asObject(value);
@@ -42,7 +50,7 @@ function commandFrom(input?: JsonObject): string | undefined {
   }
 }
 
-function summarize(output: string): string | undefined {
+export function summarize(output: string): string | undefined {
   if (output.length < 500) return;
   const lines = output.split('\n').filter(Boolean);
   const retained = [...lines.slice(0, 35), '... omitted verbose output ...', ...lines.slice(-35)];

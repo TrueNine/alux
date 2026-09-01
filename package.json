@@ -4,9 +4,30 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "packageManager": "bun@1.4.0",
+  "cline": {
+    "plugins": [
+      {
+        "paths": [
+          "./.cline-plugin/index.ts"
+        ],
+        "capabilities": [
+          "hooks",
+          "skills"
+        ]
+      }
+    ]
+  },
+  "peerDependencies": {
+    "@cline/sdk": "*"
+  },
+  "peerDependenciesMeta": {
+    "@cline/sdk": {
+      "optional": true
+    }
+  },
   "scripts": {
-    "prepare": "husky",
-    "postinstall": "husky && bun run sync:skills",
+    "prepare": "husky || echo '[alux] husky unavailable; skipped git hooks'",
+    "postinstall": "(husky || echo '[alux] husky unavailable; skipped git hooks') && (bun run sync:skills || echo '[alux] shared skill sync skipped (bun unavailable or failed)')",
     "sync:skills": "bun scripts/mixining-shared-skills-to-native-skills.ts",
     "lint": "biome check .",
     "lint:fix": "biome lint --write .",
@@ -18,6 +39,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
+    "@cline/sdk": "0.0.81",
     "@fast-check/vitest": "^0.4.1",
     "@types/bun": "^1.4.0",
     "fast-check": "^4.9.0",
