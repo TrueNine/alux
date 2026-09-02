@@ -4,8 +4,6 @@ description: Convert between SVG and bitmap artwork with validated outputs. Use 
 license: AGPL-3.0-or-later
 ---
 
-# SVG to PNG
-
 Create PNG copies with the bundled Bun script, or trace PNG bitmaps into SVG paths with the companion script. Prefer lossless extraction when the SVG is only a wrapper around 1 个 embedded PNG; otherwise render the SVG with an installed converter.
 
 ## Workflow
