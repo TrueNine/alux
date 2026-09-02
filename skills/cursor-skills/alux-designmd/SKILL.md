@@ -2,7 +2,7 @@
 name: alux-designmd
 description: "Use when working on frontend pages, components, styling, layout, visual design, interaction, UI/UX, or DESIGN.md contracts. Check the target project's AGENTS.md and DESIGN.md before implementation; also use when creating, updating, selecting templates for, or validating DESIGN.md. Do not use for backend, data, or documentation-only tasks."
 version: "0.2.33"
-license: "GPL-3.0-only"
+license: AGPL-3.0-or-later
 metadata:
   version: "0.2.33"
 ---

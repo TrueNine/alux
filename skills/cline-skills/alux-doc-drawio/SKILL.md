@@ -2,7 +2,7 @@
 name: alux-doc-drawio
 description: "可 edit SVG 文档图的创作, 维护 and 迁移. 当 Codex 需要处理 *. drawio. svg,*. drawio, mxfile XML, mxGraphModel or mxCell 内容, or 将现有图 file 迁移为 SVG 时使用."
 version: "0.2.28"
-license: "GPL-3.0-only"
+license: AGPL-3.0-or-later
 metadata:
   version: "0.2.28"
 ---

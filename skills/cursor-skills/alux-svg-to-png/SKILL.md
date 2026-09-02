@@ -1,6 +1,7 @@
 ---
 name: alux-svg-to-png
 description: Convert between SVG and bitmap artwork with validated outputs. Use when Codex needs to create a PNG copy of an SVG, extract a PNG embedded as a data URL without quality loss, render a normal vector SVG, or trace a PNG bitmap into SVG paths using dynamically imported npm packages.
+license: AGPL-3.0-or-later
 ---
 
 # SVG to PNG

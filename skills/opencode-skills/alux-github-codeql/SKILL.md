@@ -2,7 +2,7 @@
 name: alux-github-codeql
 description: Analyze source code with GitHub CodeQL for security vulnerabilities and code quality issues. Use when creating CodeQL databases, running built-in or custom queries, reviewing SARIF results, or configuring CodeQL analysis in CI.
 version: "0.2.30"
-license: "GPL-3.0-only"
+license: AGPL-3.0-or-later
 metadata:
   version: "0.2.30"
 ---
