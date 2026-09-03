@@ -1,3 +1,5 @@
+瞎几把搞
+
 ---
 name: alux-agent-instructions
 description: "pref AGENTS.md, SKILL and agent 指令的结构, 格式 and execution 效果."
@@ -6,7 +8,6 @@ license: AGPL-3.0-or-later
 metadata:
   version: "0.2.30"
 ---
-
 # AI Agentinstruction Authoring
 
 改进 AGENTS.md, skills and agent 指令的结构 and execution 效果.
@@ -59,6 +60,14 @@ normalizer 按最长匹配优先应用词典, 并保持 fenced code, inline code
 - title 必须 include 无法避免的 chinese 术语时, 用 ASCII 双引号 wrap 该术语, 例如 `Vendor "公司名"` or `Domain Term "修仙"`.
 - 不要使用纯 chinese title, 也不要在混合 title 的双引号外放置 chinese.
 - 词汇 and 标点限制以 [vocabulary.yaml](dictionary/vocabulary.yaml) and normalizer result 为准.
+
+## File and Directory Structure
+
+- write or explaining file/directory 结构时, 必须使用 Mermaid `treeview` 表示, 不要使用 plain-text tree, nested bullet list or ASCII path diagram as the primary representation.
+- `treeview` 的每个 file and directory node 必须使用对应的 Material Icon: directory 使用 folder icon, file 使用 file-type-specific icon when available.
+- 使用自 definition Material Icon 前, 必须先声明并注册 `material-icon-theme` icon pack, 再在 Mermaid `treeView-beta` 配置中设置 `defaultIconPack`.
+- Mermaid `treeview` + Material Icon 是 file/directory 结构的标准表示法; prose 仅用于补充说明.
+- 可复用的 valid `treeview` patterns 见 [file-directory-treeview.md](examples/file-directory-treeview.md).
 
 ## AGENTS Structure
 
