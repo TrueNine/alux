@@ -167,6 +167,9 @@ Temporary Items
 
 
 
+### Go gateway
+
+gateway/.env
 logs
 db.d/store/*
 .env.ci
