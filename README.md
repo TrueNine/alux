@@ -40,7 +40,7 @@ session-start, pre-tool, and post-tool hooks from `hooks/hooks.copilot.json`.
 The `/alux-check` command is provided from `commands/copilot-commands/`.
 
 GitHub Copilot CLI support is provided through the Alux marketplace entry. The
-plugin manifest is packaged under `plugins/copilot/`; direct installation from
+plugin manifest is packaged under `.copilot-plugin/`; direct installation from
 the repository root is intentionally not supported.
 
 ```bash

@@ -1,0 +1,19 @@
+{
+  "name": "alux",
+  "description": "Shared skills and custom agents for GitHub Copilot CLI",
+  "version": "0.0.12",
+  "author": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com",
+    "url": "https://truenine.org"
+  },
+  "homepage": "https://github.com/TrueNine/alux",
+  "repository": "https://github.com/TrueNine/alux",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["skills", "custom-agents", "developer-workflows"],
+  "category": "developer-tools",
+  "skills": "../skills/copilot-skills",
+  "agents": "../agents/copilot-agents",
+  "commands": "../commands/copilot-commands",
+  "hooks": "../hooks/hooks.copilot.json"
+}
