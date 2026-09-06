@@ -12,8 +12,6 @@ type CopilotPluginManifest = {
   name: string;
   version: string;
   skills: string;
-  agents: string;
-  commands: string;
   hooks: string;
 };
 
@@ -24,14 +22,10 @@ describe('GitHub Copilot CLI plugin', () => {
     expect(manifest).toMatchObject({
       name: 'alux',
       skills: '../skills/copilot-skills',
-      agents: '../agents/copilot-agents',
-      commands: '../commands/copilot-commands',
       hooks: '../hooks/hooks.copilot.json',
     });
     expect(manifest.version).toBe('0.0.12');
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
-    expect((await stat(resolve(pluginRoot, manifest.agents))).isDirectory()).toBe(true);
-    expect((await stat(resolve(pluginRoot, manifest.commands))).isDirectory()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.hooks))).isFile()).toBe(true);
   });
 
@@ -53,16 +47,11 @@ describe('GitHub Copilot CLI plugin', () => {
     expect(marketplace.plugins).toHaveLength(1);
   });
 
-  test('contains valid custom agents and skills', async () => {
+  test('contains valid skills', async () => {
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CopilotPluginManifest;
-    const [agents, commands, skills] = await Promise.all([
-      readdir(resolve(pluginRoot, manifest.agents)),
-      readdir(resolve(pluginRoot, manifest.commands)),
-      readdir(resolve(pluginRoot, manifest.skills)),
-    ]);
+    const skills = await readdir(resolve(pluginRoot, manifest.skills));
 
-    expect(agents.filter((entry) => entry.endsWith('.agent.md'))).not.toHaveLength(0);
-    expect(commands).toContain('alux-check.md');
+    expect(skills).not.toHaveLength(0);
     for (const skill of skills) {
       const skillPath = resolve(pluginRoot, manifest.skills, skill, 'SKILL.md');
       expect((await stat(skillPath)).isFile()).toBe(true);
