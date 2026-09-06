@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.13 - 2026-09-06
+
+- 新增 GitHub Copilot CLI 插件适配：提供插件清单、共享技能和钩子支持。
+- 完善 Copilot 插件市场目录与资源校验，确保插件可被正确发现和安装。
+
 ## 0.0.12 - 2026-09-06
 
 - 新增 OpenCode 插件适配：提供 `.opencode-plugin/` 清单与适配器，支持命令重写与输出压缩。

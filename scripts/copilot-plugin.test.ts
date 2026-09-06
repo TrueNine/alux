@@ -24,7 +24,7 @@ describe('GitHub Copilot CLI plugin', () => {
       skills: '../skills/copilot-skills',
       hooks: '../hooks/hooks.copilot.json',
     });
-    expect(manifest.version).toBe('0.0.12');
+    expect(manifest.version).toBe('0.0.13');
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.hooks))).isFile()).toBe(true);
   });
