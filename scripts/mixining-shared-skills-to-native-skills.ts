@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { access, cp, readdir } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 export type MixSharedSkillsResult = {
   copiedSkills: string[];
@@ -36,16 +36,14 @@ export async function mixSharedSkills(skillsRoot: string): Promise<MixSharedSkil
     directoriesWithin(sharedRoot),
     directoriesWithin(skillsRoot).then((directories) => directories.filter((directory) => directory !== 'shared' && directory.endsWith('-skills'))),
   ]);
-  const copilotSkillsRoot = join(dirname(skillsRoot), '.github', 'skills');
-  const targetDirectories = [...nativeDirectories, ...((await exists(join(dirname(skillsRoot), '.github'))) ? [relative(skillsRoot, copilotSkillsRoot)] : [])];
+  const targetDirectories = nativeDirectories;
   if (targetDirectories.length === 0) {
     throw new Error(`No native skills directories found under: ${skillsRoot}`);
   }
 
   for (const targetDirectory of targetDirectories) {
-    const targetRoot = targetDirectory.startsWith('..') ? copilotSkillsRoot : join(skillsRoot, targetDirectory);
     for (const skill of sharedSkills) {
-      await cp(join(sharedRoot, skill), join(targetRoot, skill), { recursive: true, force: true });
+      await cp(join(sharedRoot, skill), join(skillsRoot, targetDirectory, skill), { recursive: true, force: true });
     }
   }
 

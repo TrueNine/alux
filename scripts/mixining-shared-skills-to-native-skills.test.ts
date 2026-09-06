@@ -22,7 +22,6 @@ async function createSkillsRoot(): Promise<string> {
   await mkdir(join(skillsRoot, 'codex-skills'), { recursive: true });
   await mkdir(join(skillsRoot, 'claude-skills'), { recursive: true });
   await mkdir(join(skillsRoot, 'cursor-skills'), { recursive: true });
-  await mkdir(join(root, '.github'), { recursive: true });
   await writeFile(join(skillsRoot, 'shared', 'example-skill', 'SKILL.md'), 'shared skill');
   await writeFile(join(skillsRoot, 'shared', 'example-skill', 'scripts', 'run.ts'), "console.log('run')");
   return skillsRoot;
@@ -42,13 +41,12 @@ describe('mixSharedSkills', () => {
 
     expect(result).toEqual({
       copiedSkills: ['example-skill'],
-      targetDirectories: ['claude-skills', 'codex-skills', 'cursor-skills', '../.github/skills'],
+      targetDirectories: ['claude-skills', 'codex-skills', 'cursor-skills'],
     });
     for (const target of ['claude-skills', 'codex-skills', 'cursor-skills']) {
       expect(await readFile(join(root, target, 'example-skill', 'SKILL.md'), 'utf8')).toBe('shared skill');
       expect(await readFile(join(root, target, 'example-skill', 'scripts', 'run.ts'), 'utf8')).toContain('console.log');
     }
-    expect(await readFile(join(root, '..', '.github', 'skills', 'example-skill', 'SKILL.md'), 'utf8')).toBe('shared skill');
   });
 
   test('updates existing shared skill files', async () => {
