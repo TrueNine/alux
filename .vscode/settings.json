@@ -23,7 +23,7 @@
     "manifest.json": "pages.json, shime-uni.d.ts, uni.scss",
     "main.ts": "env.d.ts",
     ".env.example": ".env*",
-    "*.ts": "$(capture).js, $(capture).d.ts, $(capture).*.ts, $(capture).*.js",
+    "*.ts": "$(capture).js, $(capture).d.ts, $(capture).*.ts, $(capture).*.js, $(capture).feature",
     "*.go": "$(capture)_test.go",
     "*.src.mdx": "$(capture).mdx",
     "README.md": "CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, LICENSE, CHANGELOG.md, .gitconfig, .editorconfig, .gitmodules, .gitattributes, *.code-workspace, lefthook.yml",
