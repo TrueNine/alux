@@ -131,5 +131,7 @@
   "accessibility.signals.progress": {
     "sound": "on"
   },
-  "editor.smoothScrolling": true
+  "editor.smoothScrolling": true,
+  "cucumber.features": ["**/*.feature"],
+  "cucumber.glue": ["**/*.steps.ts"]
 }
