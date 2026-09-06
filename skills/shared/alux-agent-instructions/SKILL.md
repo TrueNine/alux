@@ -1,5 +1,3 @@
-瞎几把搞
-
 ---
 name: alux-agent-instructions
 description: "pref AGENTS.md, SKILL and agent 指令的结构, 格式 and execution 效果."
