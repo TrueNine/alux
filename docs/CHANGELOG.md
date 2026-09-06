@@ -1,3 +1,8 @@
+## Unreleased
+
+- 新增 Bun 与 Deno 运行时支持（对齐 rtk v0.48.0）：`bun install/add/remove/pm ls`、`deno test/lint/check` 从共享 hook 的 RTK 可重写命令映射放行。
+- 新增 `hooks/shared/rtk.test.ts`，覆盖 Bun/Deno 命令的安全路由判定与 `normalizeRtkCommand` 归一化。
+
 ## 0.0.11 - 2026-09-01
 
 - 新增 Cline 插件适配：`package.json` 声明 `cline.plugins` 入口，`.cline-plugin` 导出 Cline SDK `AgentPlugin`。

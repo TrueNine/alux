@@ -12,6 +12,8 @@ const replaySafeCommands = [
   /^ruff\s+(?:check|format\s+--check)(?:\s|$)/,
   /^dotnet\s+(?:test|build|restore)(?:\s|$)/,
   /^(?:npm|pnpm|yarn|bun)\s+(?:run(?:-script)?\s+)?(?:test|build|lint|check|typecheck|vitest|jest|tsc|next|playwright)(?:\b|:)/,
+  /^bun\s+(?:install|add|remove|pm\s+ls)(?:\s|$)/,
+  /^deno\s+(?:test|lint|check)(?:\s|$)/,
 ];
 const unsafeTokens = ['&&', '||', ';', '>', '>>', '<', '2>', '&>', '$(', '`'];
 
