@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
-const manifestPath = resolve(repositoryRoot, 'plugins', 'copilot', 'plugin.json');
+const manifestPath = resolve(repositoryRoot, '.copilot-plugin', 'plugin.json');
 const marketplaceManifestPath = resolve(repositoryRoot, '.github', 'plugin', 'marketplace.json');
 const pluginRoot = resolve(manifestPath, '..');
 
@@ -23,10 +23,10 @@ describe('GitHub Copilot CLI plugin', () => {
 
     expect(manifest).toMatchObject({
       name: 'alux',
-      skills: '../../skills/copilot-skills',
-      agents: '../../agents/copilot-agents',
-      commands: '../../commands/copilot-commands',
-      hooks: '../../hooks/hooks.copilot.json',
+      skills: '../skills/copilot-skills',
+      agents: '../agents/copilot-agents',
+      commands: '../commands/copilot-commands',
+      hooks: '../hooks/hooks.copilot.json',
     });
     expect(manifest.version).toBe('0.0.12');
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
@@ -48,7 +48,7 @@ describe('GitHub Copilot CLI plugin', () => {
         name: 'TrueNine',
         email: 'truenine304520@gmail.com',
       },
-      plugins: [{ name: 'alux', source: './plugins/copilot' }],
+      plugins: [{ name: 'alux', source: './.copilot-plugin' }],
     });
     expect(marketplace.plugins).toHaveLength(1);
   });
