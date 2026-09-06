@@ -26,6 +26,8 @@
 
 ### GitHub Copilot
 
+<details>
+
 GitHub Copilot automatically reads the repository guidance in
 `.github/copilot-instructions.md` and `AGENTS.md`. Copilot CLI loads its plugin
 assets from `.copilot-plugin/`. Copilot coding agent uses
@@ -42,6 +44,8 @@ the repository root is intentionally not supported.
 copilot plugin marketplace add TrueNine/alux
 copilot plugin install alux@alux
 ```
+
+</details>
 
 ### ChatGPT/Codex and Codex CLI
 
