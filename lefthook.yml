@@ -1,0 +1,14 @@
+min_version: 2.0.0
+
+pre-commit:
+  parallel: false
+  commands:
+    sync-shared-skills:
+      run: |
+        if ! git diff --cached --quiet -- skills/shared/; then
+          bun scripts/mixining-shared-skills-to-native-skills.ts || exit $?
+        fi
+    lint:
+      run: bun run --if-present lint
+    typescript:
+      run: bun run check:typescript

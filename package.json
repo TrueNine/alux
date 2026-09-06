@@ -30,8 +30,8 @@
     }
   },
   "scripts": {
-    "prepare": "husky || echo '[alux] husky unavailable; skipped git hooks'",
-    "postinstall": "(husky || echo '[alux] husky unavailable; skipped git hooks') && (bun run sync:skills || echo '[alux] shared skill sync skipped (bun unavailable or failed)')",
+    "prepare": "lefthook install --reset-hooks-path || echo '[alux] lefthook unavailable; skipped git hooks'",
+    "postinstall": "(lefthook install --reset-hooks-path || echo '[alux] lefthook unavailable; skipped git hooks') && (bun run sync:skills || echo '[alux] shared skill sync skipped (bun unavailable or failed)')",
     "sync:skills": "bun scripts/mixining-shared-skills-to-native-skills.ts",
     "test": "bun --bun vitest run",
     "test:watch": "bun --bun vitest watch",
@@ -57,7 +57,7 @@
     "@types/bun": "^1.4.1",
     "@vitest/coverage-v8": "^5.0.0",
     "fast-check": "^4.9.0",
-    "husky": "^9.1.7",
+    "lefthook": "2.1.12",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
   },
