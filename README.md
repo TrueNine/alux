@@ -31,9 +31,8 @@ GitHub Copilot automatically reads the repository guidance in
 assets from `.copilot-plugin/`. Copilot coding agent uses
 `.github/workflows/copilot-setup-steps.yml` to prepare Bun dependencies.
 The Copilot CLI plugin loads its packaged assets from
-`skills/copilot-skills/` and `agents/copilot-agents/`, and enables the shared
-session-start, pre-tool, and post-tool hooks from `hooks/hooks.copilot.json`.
-The `/alux-check` command is provided from `commands/copilot-commands/`.
+`skills/copilot-skills/` and enables the shared session-start, pre-tool, and
+post-tool hooks from `hooks/hooks.copilot.json`.
 
 GitHub Copilot CLI support is provided through the Alux marketplace entry. The
 plugin manifest is packaged under `.copilot-plugin/`; direct installation from
