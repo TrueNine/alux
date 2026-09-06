@@ -30,6 +30,31 @@ Feature: RTK 钩子行为
       When I normalize the RTK command
       Then the normalized command should be "git status"
 
+    Scenario: 非尾部的短路保持不变
+      Given a command "a || true b"
+      When I normalize the RTK command
+      Then the normalized command should be "a || true b"
+
+    Scenario: 双空格的尾部短路被剥离
+      Given a command "bun test  || true"
+      When I normalize the RTK command
+      Then the normalized command should be "bun test"
+
+    Scenario: 短路符后双空格被剥离
+      Given a command "bun test ||  true"
+      When I normalize the RTK command
+      Then the normalized command should be "bun test"
+
+    Scenario: 双空格的重定向抑制短路被剥离
+      Given a command "deno lint 2>/dev/null  || true"
+      When I normalize the RTK command
+      Then the normalized command should be "deno lint"
+
+    Scenario: true 后缀不被误判为短路
+      Given a command "bun test || trueX"
+      When I normalize the RTK command
+      Then the normalized command should be "bun test || trueX"
+
   Rule: 只读与构建检查命令判定为安全
 
     Scenario Outline: 常见只读检查命令是安全的
@@ -68,6 +93,48 @@ Feature: RTK 钩子行为
         | docker ps                    |
         | docker container ls          |
         | ./gradlew test               |
+        | ls                           |
+        | go test                      |
+        | go  test                     |
+        | cargo  test                  |
+        | cargo test --lib             |
+        | git  status                  |
+        | vitest                       |
+        | bunx  vitest run             |
+        | playwright test              |
+        | playwright test --headed     |
+        | playwright  test             |
+        | bunx playwright test         |
+        | bunx  playwright test        |
+        | pytest                       |
+        | ruff check                   |
+        | ruff  check                  |
+        | ruff format --check          |
+        | ruff format  --check         |
+        | dotnet test --info           |
+        | dotnet  test                 |
+        | npm  run test                |
+        | npm run  test                |
+        | bun  install                 |
+        | bun pm  ls                   |
+        | deno  test                   |
+        | gh  pr view 42               |
+        | gh pr  view 42               |
+        | docker compose ps            |
+        | docker compose  ps           |
+        | docker  ps                   |
+        | docker image ls              |
+        | docker image  ls             |
+        | docker network ls            |
+        | docker network  ls           |
+        | docker system df             |
+        | docker system  df            |
+        | docker container  ls         |
+        | docker volume ls             |
+        | docker volume  ls            |
+        | gradlew test                 |
+        | gradle test gh x             |
+        | git status docker x          |
 
     Scenario: Bun 与 Deno 的包管理查询是安全的
       Given a command "bun install"
@@ -92,6 +159,32 @@ Feature: RTK 钩子行为
         | ./gradlew publish     |
         | ./gradlew clean build |
         | rm -rf dist           |
+
+    Scenario Outline: 带前缀的命令不受前缀后的安全词影响
+      Given a command "<command>"
+      When I check whether it is a safe RTK command
+      Then the safety result should be false
+
+      Examples:
+        | command                |
+        | echo ls                |
+        | echo git status        |
+        | echo cargo test        |
+        | echo go test           |
+        | echo vitest run        |
+        | echo playwright test   |
+        | echo pytest -q         |
+        | echo ruff check        |
+        | echo dotnet test       |
+        | echo npm run test      |
+        | echo bun install       |
+        | echo deno test         |
+        | echo docker ps         |
+        | echo gh pr view 42     |
+        | echo gradle test       |
+        | echo ./gradlew test    |
+        | gh echo gh pr view 42  |
+        | docker x docker ps   |
 
   Rule: 危险拼接与空命令一律判定为不安全
 
@@ -137,12 +230,25 @@ Feature: RTK 钩子行为
       And an RTK rewrite stub with exit code 3 and output "rtk gh pr view 42"
       When I resolve the optimized command
       Then the optimized command should be "rtk gh pr view 42"
+      And the rewrite invocation should be "rtk rewrite gh pr view 42"
 
     Scenario: 改写进程失败时无优化命令
       Given a command "unknown-tool --flag"
-      And an RTK rewrite stub with exit code 1 and output ""
+      And an RTK rewrite stub with exit code 1 and output "rtk rewritten output"
       When I resolve the optimized command
       Then there should be no optimized command
+
+    Scenario: 成功退出但改写变化时返回优化命令
+      Given a command "git status"
+      And an RTK rewrite stub with exit code 0 and output "rtk rewritten output"
+      When I resolve the optimized command
+      Then the optimized command should be "rtk rewritten output"
+
+    Scenario: 改写输出的空白被裁剪
+      Given a command "gh pr view 42"
+      And an RTK rewrite stub with exit code 3 and output "rtk gh pr view 42 "
+      When I resolve the optimized command
+      Then the optimized command should be "rtk gh pr view 42"
 
     Scenario: 改写结果相同时无优化命令
       Given a command "git status"
@@ -208,17 +314,20 @@ Feature: RTK 钩子行为
       Given a preprocess input "Get-Content README.md"
       When I preprocess the command
       Then the preprocessed command should be "Get-Content -Encoding utf8 README.md"
+      And the marker should have seen "Get-Content -Encoding utf8 README.md"
 
     Scenario: Cursor 安全命令走 RTK 改写
       Given a Cursor preprocess input "git status"
       And an RTK rewrite stub with exit code 3 and output "rtk git status"
       When I preprocess the Cursor command
       Then the preprocessed command should be "rtk git status"
+      And the marker should have seen "rtk git status"
 
     Scenario: Cursor 不安全命令不走 RTK 改写
       Given a Cursor preprocess input "bun run dev"
       When I preprocess the Cursor command
       Then the Cursor command should fall back to the PowerShell rewrite result
+      And the marker should have seen "bun run dev"
 
     Scenario Outline: 平台与工具名不匹配时入口静默放过
       Given a PreToolUse payload for tool "<tool>" with command "git status"

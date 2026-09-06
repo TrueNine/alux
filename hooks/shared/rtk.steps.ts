@@ -23,6 +23,7 @@ interface ScenarioState {
   rewriteExitCode?: number;
   rewriteOutput?: string;
   rewriteThrows?: boolean;
+  rewriteCmd?: string[];
   optimized?: string;
   proxy?: string;
   markerCommand?: string;
@@ -33,6 +34,7 @@ interface ScenarioState {
   powerShellPlatform?: string;
   powerShellOffsets?: number[];
   powerShellRewritten?: string;
+  markerSeen?: string[];
   cursorOptimizeCalls?: number;
   hookTool?: string;
   hookCommand?: string;
@@ -130,11 +132,19 @@ When('I resolve the optimized command', () => {
   if (state.rewriteExitCode === undefined || state.rewriteOutput === undefined) throw new Error('no rewrite stub was set');
   const exitCode = state.rewriteExitCode;
   const output = state.rewriteOutput;
-  state.optimized = resolveOptimizedCommand(state.command, undefined, () => ({
-    exitCode,
-    stdout: new TextEncoder().encode(output),
-    stderr: new Uint8Array(),
-  }));
+  state.optimized = resolveOptimizedCommand(state.command, undefined, (options) => {
+    state.rewriteCmd = options.cmd;
+    return {
+      exitCode,
+      stdout: new TextEncoder().encode(output),
+      stderr: new Uint8Array(),
+    };
+  });
+});
+
+Then('the rewrite invocation should be {string}', (expected: string) => {
+  const actual = (state.rewriteCmd ?? []).join(' ');
+  if (actual !== expected) throw new Error(`expected rewrite invocation ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
 });
 
 Then('the optimized command should be {string}', (expected: string) => {
@@ -236,8 +246,16 @@ When('I preprocess the command', () => {
     'win32',
     createTempDir(),
     (command) => rewritePowerShellGetContent(command, 'win32', () => [11]),
-    () => true,
+    (command) => {
+      state.markerSeen = [...(state.markerSeen ?? []), command];
+      return true;
+    },
   );
+});
+
+Then('the marker should have seen {string}', (expected: string) => {
+  const actual = state.markerSeen?.at(-1);
+  if (actual !== expected) throw new Error(`expected marker to see ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
 });
 
 Then('the preprocessed command should be {string}', (expected: string) => {
@@ -259,7 +277,10 @@ When('I preprocess the Cursor command', () => {
     'linux',
     createTempDir(),
     () => undefined,
-    () => true,
+    (command) => {
+      state.markerSeen = [...(state.markerSeen ?? []), command];
+      return true;
+    },
     () => {
       calls.cursorOptimizeCalls = (calls.cursorOptimizeCalls ?? 0) + 1;
       return stubOutput || undefined;
