@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "alux",
-      "source": "./plugins/copilot",
+      "source": "./.copilot-plugin",
       "description": "Shared skills and custom agents for GitHub Copilot CLI",
       "version": "0.0.12",
       "author": {
