@@ -10,6 +10,7 @@
 
 <p align="center">
   <img alt="Codex/ChatGPT" src="https://img.shields.io/badge/Codex%2FChatGPT-412991?style=flat-square&logo=openai&logoColor=white"/>
+  <img alt="GitHub Copilot" src="https://img.shields.io/badge/GitHub%20Copilot-000000?style=flat-square&logo=githubcopilot&logoColor=white"/>
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-D97757?style=flat-square&logo=anthropic&logoColor=white"/>
   <img alt="Cursor" src="https://img.shields.io/badge/Cursor-000000?style=flat-square&logo=cursor&logoColor=white"/>
   <img alt="Cline" src="https://img.shields.io/badge/Cline-2B2B3B?style=flat-square"/>
@@ -22,6 +23,30 @@
 </p>
 
 ## Installation Plugin or Update Plugin
+
+### GitHub Copilot
+
+GitHub Copilot automatically reads the repository guidance in
+`.github/copilot-instructions.md` and `AGENTS.md`. The instructions describe the
+shared skill workflow and validation commands used by this repository. Repository
+skills are available under `.github/skills/` after running `bun run sync:skills`.
+The custom agents under `.github/agents/` provide backend, frontend, database,
+documentation, artifact, testing, and version-control roles. Copilot coding
+agent uses `.github/workflows/copilot-setup-steps.yml` to prepare Bun
+dependencies.
+The Copilot CLI plugin loads its packaged assets from
+`skills/copilot-skills/` and `agents/copilot-agents/`, and enables the shared
+session-start, pre-tool, and post-tool hooks from `hooks/hooks.copilot.json`.
+The `/alux-check` command is provided from `commands/copilot-commands/`.
+
+GitHub Copilot CLI support is provided through the Alux marketplace entry. The
+plugin manifest is packaged under `plugins/copilot/`; direct installation from
+the repository root is intentionally not supported.
+
+```bash
+copilot plugin marketplace add TrueNine/alux
+copilot plugin install alux@alux
+```
 
 ### ChatGPT/Codex and Codex CLI
 
@@ -79,5 +104,3 @@ git clone https://github.com/TrueNine/alux.git
 mkdir -p .cline/skills
 cp -R alux/skills/cline-skills/* .cline/skills/
 ```
-
-
