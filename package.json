@@ -54,5 +54,6 @@
   },
   "dependencies": {
     "zx": "^8.8.5"
-  }
+  },
+  "type": "module"
 }
