@@ -8,7 +8,7 @@ export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -17,7 +17,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
       ? 'cursor'
       : process.argv.includes('--cline')
         ? 'cline'
-        : undefined;
+        : process.argv.includes('--copilot')
+          ? 'copilot'
+          : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
@@ -27,7 +29,7 @@ export function text(value: unknown): string {
   if (Array.isArray(value)) return value.map(text).filter(Boolean).join('\n');
   const object = asObject(value);
   if (!object) return '';
-  for (const key of ['aggregated_output', 'output', 'text', 'stdout', 'stderr', 'message']) {
+  for (const key of ['aggregated_output', 'output', 'text', 'textResultForLlm', 'text_result_for_llm', 'stdout', 'stderr', 'message']) {
     const result = text(object[key]);
     if (result) return result;
   }
@@ -58,6 +60,10 @@ export function summarize(output: string): string | undefined {
 }
 
 function emitProcessedOutput(value: string): never {
+  if (platform === 'copilot') {
+    process.stdout.write(`${JSON.stringify({ additionalContext: value })}\n`);
+    process.exit(0);
+  }
   if (platform === 'cursor') {
     process.stdout.write(`${JSON.stringify({ additional_context: value })}\n`);
     process.exit(0);
@@ -102,12 +108,13 @@ async function main(): Promise<void> {
 
   const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
   if (!platform || !toolName || (platform === 'claude' ? toolName !== 'Bash' : platform === 'cursor' ? toolName !== 'Shell' : !shellTools.has(toolName))) return;
-  const input = asObject(payload.tool_input) ?? asObject(payload.toolInput);
+  const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);
   const response =
     (platform === 'cursor' ? parseCursorToolOutput(payload.tool_output ?? payload.toolOutput) : undefined) ??
     asObject(payload.tool_response) ??
     asObject(payload.toolResponse) ??
-    asObject(payload.response);
+    asObject(payload.response) ??
+    asObject(payload.toolResult);
   const output = originalOutput(response);
   const summary = summarize(output);
   if (summary) emitProcessedOutput(summary);

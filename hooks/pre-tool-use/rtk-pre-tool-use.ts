@@ -7,7 +7,7 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -16,7 +16,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
       ? 'cursor'
       : process.argv.includes('--cline')
         ? 'cline'
-        : undefined;
+        : process.argv.includes('--copilot')
+          ? 'copilot'
+          : undefined;
 const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
@@ -90,12 +92,16 @@ async function main(): Promise<void> {
             : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
     )
       return;
-    const input = asObject(payload.tool_input) ?? asObject(payload.toolInput);
+    const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);
     const command = commandFrom(input);
     if (!command) return;
     const cwd = typeof input?.working_directory === 'string' ? input.working_directory : typeof input?.workdir === 'string' ? input.workdir : typeof payload.cwd === 'string' ? payload.cwd : undefined;
     const rewritten = platform === 'cursor' ? preprocessCursorCommand(command, cwd) : preprocessCommand(command);
     if (!rewritten) return;
+    if (platform === 'copilot') {
+      process.stdout.write(`${JSON.stringify({ permissionDecision: 'allow', modifiedArgs: { ...input, command: rewritten } })}\n`);
+      return;
+    }
     if (platform === 'cursor') {
       process.stdout.write(
         `${JSON.stringify({

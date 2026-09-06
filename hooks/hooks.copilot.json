@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "bun \"${PLUGIN_ROOT}/../../hooks/session-start/sync-agent-instructions.ts\"",
+        "timeoutSec": 30
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell",
+        "command": "bun \"${PLUGIN_ROOT}/../../hooks/pre-tool-use/rtk-pre-tool-use.ts\" --copilot",
+        "timeoutSec": 30
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell",
+        "command": "bun \"${PLUGIN_ROOT}/../../hooks/post-tool-use/rtk-post-tool-use.ts\" --copilot",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}
