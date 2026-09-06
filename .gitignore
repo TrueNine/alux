@@ -181,3 +181,7 @@ build-cache/
 .jqwik-database
 **/.jqwik-database
 .devopsflow
+
+### stryker mutation testing
+.stryker-tmp/
+reports/
