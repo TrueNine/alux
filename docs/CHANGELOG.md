@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## 0.0.12 - 2026-09-06
 
+- 新增 OpenCode 插件适配：提供 `.opencode-plugin/` 清单与适配器，支持命令重写与输出压缩。
 - 新增 Bun 与 Deno 运行时支持（对齐 rtk v0.48.0）：`bun install/add/remove/pm ls`、`deno test/lint/check` 从共享 hook 的 RTK 可重写命令映射放行。
+- 迁移单元测试框架至 Vitest，配置 `bun --bun vitest` 执行以保留原生 `Bun` 运行环境。
+- 移除 `js-yaml` 外部库依赖，运行时脚本统一使用原生运行时能力。
 - 新增 `hooks/shared/rtk.test.ts`，覆盖 Bun/Deno 命令的安全路由判定与 `normalizeRtkCommand` 归一化。
 
 ## 0.0.11 - 2026-09-01

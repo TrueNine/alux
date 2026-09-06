@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 // GitHub: https://github.com/rtk-ai/rtk
 // Documentation: https://github.com/rtk-ai/rtk/blob/develop/hooks/README.md
-import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from '../shared/rtk';
-import '../shared/log';
+import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
+import '../shared/log.ts';
 
-export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk';
+export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type JsonObject = Record<string, unknown>;

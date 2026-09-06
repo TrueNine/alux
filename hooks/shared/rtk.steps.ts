@@ -1,14 +1,18 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Before, Given, Then, When } from '@cucumber/cucumber';
-import { summarize } from '../post-tool-use/rtk-post-tool-use';
-import { rewritePowerShellGetContent } from '../pre-tool-use/powershell-get-content-utf8';
-import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from '../pre-tool-use/rtk-pre-tool-use';
-import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from './rtk';
+import { summarize } from '../post-tool-use/rtk-post-tool-use.ts';
+import { rewritePowerShellGetContent } from '../pre-tool-use/powershell-get-content-utf8.ts';
+import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from '../pre-tool-use/rtk-pre-tool-use.ts';
+import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from './rtk.ts';
 
-const preToolUseEntry = join(import.meta.dir, '..', 'pre-tool-use', 'rtk-pre-tool-use.ts');
-const postToolUseEntry = join(import.meta.dir, '..', 'post-tool-use', 'rtk-post-tool-use.ts');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const preToolUseEntry = join(__dirname, '..', 'pre-tool-use', 'rtk-pre-tool-use.ts');
+const postToolUseEntry = join(__dirname, '..', 'post-tool-use', 'rtk-post-tool-use.ts');
 
 interface HookResult {
   exitCode: number;
@@ -297,16 +301,14 @@ Then('the Cursor command should fall back to the PowerShell rewrite result', () 
 // 钩子入口调用
 
 function runHook(entry: string, flag: string | undefined, stdinText: string): HookResult {
-  const result = Bun.spawnSync({
-    cmd: flag ? ['bun', entry, flag] : ['bun', entry],
-    stdin: new TextEncoder().encode(stdinText),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', flag ? [entry, flag] : [entry], {
+    input: stdinText,
+    stdio: ['pipe', 'pipe', 'pipe'],
   });
   return {
-    exitCode: result.exitCode,
-    stdout: new TextDecoder().decode(result.stdout),
-    stderr: new TextDecoder().decode(result.stderr),
+    exitCode: result.status ?? 0,
+    stdout: new TextDecoder().decode(result.stdout ?? new Uint8Array()),
+    stderr: new TextDecoder().decode(result.stderr ?? new Uint8Array()),
   };
 }
 
@@ -345,7 +347,7 @@ Given('the hook configuration for {string}', (platform: string) => {
 });
 
 function readHookEntry(platform: string, kind: 'pre' | 'post'): { matcher: string; command: string } {
-  const file = join(import.meta.dir, '..', platform === 'cursor' ? 'hooks.cursor.json' : platform === 'claude' ? 'hooks.claude.json' : 'hooks.codex.json');
+  const file = join(__dirname, '..', platform === 'cursor' ? 'hooks.cursor.json' : platform === 'claude' ? 'hooks.claude.json' : 'hooks.codex.json');
   const config = JSON.parse(readFileSync(file, 'utf8')) as {
     hooks: Record<string, Array<{ matcher?: string; command?: string; hooks?: Array<{ command: string }> }>>;
   };

@@ -2,9 +2,9 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isSafeRtkCommand, resolveOptimizedCommand } from '../shared/rtk';
-import { rewritePowerShellGetContent } from './powershell-get-content-utf8';
-import '../shared/log';
+import { isSafeRtkCommand, resolveOptimizedCommand } from '../shared/rtk.ts';
+import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
+import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
 type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline';

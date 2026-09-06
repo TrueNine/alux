@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from 'bun:test';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 import { findNormalizationIssues, loadVocabulary, normalizeGovernedFiles, normalizeInstructionText, runNormalizeCli } from './normalize-agent-instructions';
 
 const temporaryRoots: string[] = [];

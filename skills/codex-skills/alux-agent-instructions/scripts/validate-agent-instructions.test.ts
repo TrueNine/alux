@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 import { findGovernedFiles, runCli, validateGlobalAgentsFile, validateProjectAuthoring } from './validate-agent-instructions';
 
 const temporaryRoots: string[] = [];

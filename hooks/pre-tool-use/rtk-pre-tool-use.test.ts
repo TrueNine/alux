@@ -1,11 +1,15 @@
-import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect, test } from 'vitest';
 import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from './rtk-pre-tool-use';
 
-const hooksDirectory = join(import.meta.dir, '..');
-const entrypoint = join(import.meta.dir, 'rtk-pre-tool-use.ts');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const hooksDirectory = join(__dirname, '..');
+const entrypoint = join(__dirname, 'rtk-pre-tool-use.ts');
 
 test('PreToolUse invokes the Bun TypeScript entrypoint', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.codex.json'), 'utf8'));
@@ -120,40 +124,30 @@ test('does not touch the marker for unrelated commands or non-Windows platforms'
 });
 
 test('Claude TypeScript entrypoint ignores non-Bash tools', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--claude'],
-    stdin: new TextEncoder().encode(
-      JSON.stringify({
-        tool_name: 'Read',
-        tool_input: { command: 'Get-Content README.md' },
-      }),
-    ),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint, '--claude'], {
+    input: JSON.stringify({
+      tool_name: 'Read',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
 test.skipIf(process.platform !== 'win32')('Cursor entrypoint rewrites Shell commands with native updated_input', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--cursor'],
-    stdin: new TextEncoder().encode(
-      JSON.stringify({
-        tool_name: 'Shell',
-        tool_input: {
-          command: 'Get-Content README.md',
-          working_directory: 'C:\\workspace',
-        },
-      }),
-    ),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint, '--cursor'], {
+    input: JSON.stringify({
+      tool_name: 'Shell',
+      tool_input: {
+        command: 'Get-Content README.md',
+        working_directory: 'C:\\workspace',
+      },
+    }),
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stderr)).toBe('');
   expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
     permission: 'allow',
@@ -165,14 +159,11 @@ test.skipIf(process.platform !== 'win32')('Cursor entrypoint rewrites Shell comm
 });
 
 test('TypeScript entrypoint is a fail-open no-op for invalid input', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint],
-    stdin: new TextEncoder().encode('not json'),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint], {
+    input: 'not json',
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });

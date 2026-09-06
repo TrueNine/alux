@@ -133,5 +133,11 @@
   },
   "editor.smoothScrolling": true,
   "cucumber.features": ["**/*.feature"],
-  "cucumber.glue": ["**/*.steps.ts"]
+  "cucumber.glue": ["**/*.steps.ts"],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "file": ".github/commit-message-instructions.md"
+    }
+  ],
+  "chat.useClaudeMdFile": false
 }

@@ -1,10 +1,11 @@
-import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
+import { expect, test } from 'vitest';
 import { isSafeRtkCommand, normalizeRtkCommand, resolveOptimizedCommand } from './rtk';
 
 function rtkAvailable(): boolean {
   try {
-    const result = Bun.spawnSync({ cmd: ['rtk', '--version'], stdout: 'pipe', stderr: 'pipe' });
-    return result.exitCode === 0;
+    const result = spawnSync('rtk', ['--version'], { stdio: 'pipe' });
+    return result.status === 0;
   } catch {
     return false;
   }

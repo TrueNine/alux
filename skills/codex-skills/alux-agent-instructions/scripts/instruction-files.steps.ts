@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { Before, Given, Then, When } from '@cucumber/cucumber';
-import { findGovernedFiles, isGovernedFile, normalizedPath } from './instruction-files';
+import { findGovernedFiles, isGovernedFile, normalizedPath } from './instruction-files.ts';
 
 interface ScenarioState {
   relativePath?: string;

@@ -1,3 +1,5 @@
+import { spawnSync as nodeSpawnSync } from 'node:child_process';
+
 // GitHub: https://github.com/rtk-ai/rtk
 // Documentation: https://github.com/rtk-ai/rtk/blob/develop/hooks/README.md
 
@@ -26,7 +28,18 @@ type SpawnOptions = {
 type SpawnResult = { exitCode: number; stdout: Uint8Array; stderr: Uint8Array };
 type SpawnSync = (options: SpawnOptions) => SpawnResult;
 
-const spawnSync: SpawnSync = (options) => Bun.spawnSync(options);
+const spawnSync: SpawnSync = ({ cmd, cwd }) => {
+  const result = nodeSpawnSync(cmd[0], cmd.slice(1), {
+    cwd,
+    encoding: 'buffer',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  return {
+    exitCode: result.status ?? 1,
+    stdout: result.stdout ?? new Uint8Array(),
+    stderr: result.stderr ?? new Uint8Array(),
+  };
+};
 
 export function normalizeRtkCommand(command: string): string {
   return command.trim().replace(/\s+(?:2>\/dev\/null\s+)?\|\|\s+true\s*$/, '');
