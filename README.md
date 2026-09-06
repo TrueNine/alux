@@ -27,13 +27,9 @@
 ### GitHub Copilot
 
 GitHub Copilot automatically reads the repository guidance in
-`.github/copilot-instructions.md` and `AGENTS.md`. The instructions describe the
-shared skill workflow and validation commands used by this repository. Repository
-skills are available under `.github/skills/` after running `bun run sync:skills`.
-The custom agents under `.github/agents/` provide backend, frontend, database,
-documentation, artifact, testing, and version-control roles. Copilot coding
-agent uses `.github/workflows/copilot-setup-steps.yml` to prepare Bun
-dependencies.
+`.github/copilot-instructions.md` and `AGENTS.md`. Copilot CLI loads its plugin
+assets from `.copilot-plugin/`. Copilot coding agent uses
+`.github/workflows/copilot-setup-steps.yml` to prepare Bun dependencies.
 The Copilot CLI plugin loads its packaged assets from
 `skills/copilot-skills/` and `agents/copilot-agents/`, and enables the shared
 session-start, pre-tool, and post-tool hooks from `hooks/hooks.copilot.json`.

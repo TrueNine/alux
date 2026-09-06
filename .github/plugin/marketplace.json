@@ -19,11 +19,7 @@
         "email": "truenine304520@gmail.com"
       },
       "repository": "https://github.com/TrueNine/alux",
-      "license": "AGPL-3.0-or-later",
-      "skills": "../../skills/copilot-skills",
-      "agents": "../../agents/copilot-agents",
-      "commands": "../../commands/copilot-commands",
-      "hooks": "../../hooks/hooks.copilot.json"
+      "license": "AGPL-3.0-or-later"
     }
   ]
 }
