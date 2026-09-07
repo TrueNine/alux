@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.14 - 2026-09-07
+
+- 新增 Cursor 插件 agents 路径配置：`agents/cursor-agents/`，修正 AGENTS.md 错误识别为 subagents 的问题。
+
 ## 0.0.13 - 2026-09-06
 
 - 新增 GitHub Copilot CLI 插件适配：提供插件清单、共享技能和钩子支持。

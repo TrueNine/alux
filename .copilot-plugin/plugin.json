@@ -1,7 +1,7 @@
 {
   "name": "alux",
   "description": "Shared skills and custom agents for GitHub Copilot CLI",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "author": {
     "name": "TrueNine",
     "email": "truenine304520@gmail.com",
