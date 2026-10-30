@@ -1,17 +1,18 @@
-import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect, test } from 'vitest';
 import { proxyInvocation, resolveOptimizedCommand } from './rtk-post-tool-use';
 
-const hooksDirectory = join(import.meta.dir, '..');
-const entrypoint = join(import.meta.dir, 'rtk-post-tool-use.ts');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const hooksDirectory = join(__dirname, '..');
+const entrypoint = join(__dirname, 'rtk-post-tool-use.ts');
 
 function invokeEntrypoint(payload: unknown) {
-  return Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--claude'],
-    stdin: new TextEncoder().encode(JSON.stringify(payload)),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  return spawnSync('bun', [entrypoint, '--claude'], {
+    input: JSON.stringify(payload),
   });
 }
 
@@ -64,14 +65,11 @@ test('Cursor PostToolUse injects processed Shell output as context', () => {
 });
 
 test('TypeScript entrypoint preserves a no-op hook result', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint],
-    stdin: new TextEncoder().encode('not json'),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint], {
+    input: 'not json',
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
@@ -88,31 +86,26 @@ test('TypeScript entrypoint summarizes verbose Bash output', () => {
   const result = invokeEntrypoint(payload);
 
   const replacement = new TextDecoder().decode(result.stderr);
-  expect(result.exitCode).toBe(2);
+  expect(result.status).toBe(2);
   expect(replacement).toContain('Output summary (100 lines)');
   expect(replacement).toContain('... omitted verbose output ...');
   expect(replacement).not.toContain('line 50');
 });
 
 test('Cursor entrypoint summarizes JSON-stringified Shell output', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--cursor'],
-    stdin: new TextEncoder().encode(
-      JSON.stringify({
-        tool_name: 'Shell',
-        tool_input: { command: 'bun test' },
-        tool_output: JSON.stringify({
-          exitCode: 0,
-          stdout: verboseOutput(),
-          stderr: '',
-        }),
+  const result = spawnSync('bun', [entrypoint, '--cursor'], {
+    input: JSON.stringify({
+      tool_name: 'Shell',
+      tool_input: { command: 'bun test' },
+      tool_output: JSON.stringify({
+        exitCode: 0,
+        stdout: verboseOutput(),
+        stderr: '',
       }),
-    ),
-    stdout: 'pipe',
-    stderr: 'pipe',
+    }),
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stderr)).toBe('');
   const output = JSON.parse(new TextDecoder().decode(result.stdout));
   expect(output.additional_context).toContain('Output summary (100 lines)');
@@ -121,36 +114,26 @@ test('Cursor entrypoint summarizes JSON-stringified Shell output', () => {
 });
 
 test('Codex entrypoint retains exec tool support', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--codex'],
-    stdin: new TextEncoder().encode(
-      JSON.stringify({
-        tool_name: 'exec',
-        tool_response: { output: verboseOutput() },
-      }),
-    ),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint, '--codex'], {
+    input: JSON.stringify({
+      tool_name: 'exec',
+      tool_response: { output: verboseOutput() },
+    }),
   });
 
-  expect(result.exitCode).toBe(2);
+  expect(result.status).toBe(2);
   expect(new TextDecoder().decode(result.stderr)).toContain('Output summary (100 lines)');
 });
 
 test('entrypoint without a platform mode is a no-op', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint],
-    stdin: new TextEncoder().encode(
-      JSON.stringify({
-        tool_name: 'Bash',
-        tool_response: { output: verboseOutput() },
-      }),
-    ),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_response: { output: verboseOutput() },
+    }),
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
@@ -162,7 +145,7 @@ test('TypeScript entrypoint never summarizes verbose Read output', () => {
     tool_response: { output: verboseOutput() },
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
@@ -172,7 +155,7 @@ test('TypeScript entrypoint ignores verbose output without a tool name', () => {
     tool_response: { output: verboseOutput() },
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
@@ -182,8 +165,8 @@ test('TypeScript entrypoint does not retain a Python implementation dependency',
 
   expect(source).not.toContain('python3');
   expect(source).not.toContain('hook.py');
-  expect(existsSync(join(import.meta.dir, 'rtk-post-tool-use'))).toBe(false);
-  expect(existsSync(join(import.meta.dir, 'rtk-post-tool-use.py'))).toBe(false);
+  expect(existsSync(join(__dirname, 'rtk-post-tool-use'))).toBe(false);
+  expect(existsSync(join(__dirname, 'rtk-post-tool-use.py'))).toBe(false);
 });
 
 test('TypeScript entrypoint cites the RTK repository and hook documentation', () => {

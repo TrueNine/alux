@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "mutate": ["hooks/shared/rtk.ts", "skills/shared/alux-agent-instructions/scripts/instruction-files.ts"],
+  "ignorePatterns": ["tsconfig.json", ".codegraph/"],
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "bun test hooks/shared/rtk.feature.test.ts hooks/shared/rtk.test.ts hooks/pre-tool-use/rtk-pre-tool-use.test.ts hooks/pre-tool-use/powershell-get-content-utf8.test.ts hooks/post-tool-use/rtk-post-tool-use.test.ts skills/shared/alux-agent-instructions/scripts/instruction-files.feature.test.ts skills/shared/alux-agent-instructions/scripts/normalize-agent-instructions.test.ts skills/shared/alux-agent-instructions/scripts/validate-agent-instructions.test.ts"
+  },
+  "coverageAnalysis": "off",
+  "reporters": ["clear-text", "progress", "json"],
+  "disableTypeChecks": true,
+  "timeoutMS": 30000
+}

@@ -1,7 +1,7 @@
-import { expect, test } from 'bun:test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { expect, test } from 'vitest';
 import { appendLogRecord, hijackConsole, type LogRecord, platformFromArgv } from './log';
 
 const timestamp = '2026-08-25T00:00:00.000Z';

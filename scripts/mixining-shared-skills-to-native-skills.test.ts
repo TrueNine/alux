@@ -15,15 +15,16 @@ afterEach(async () => {
 async function createSkillsRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'alux-skills-'));
   temporaryDirectories.push(root);
-  await mkdir(join(root, 'shared', 'example-skill', 'scripts'), {
+  const skillsRoot = join(root, 'skills');
+  await mkdir(join(skillsRoot, 'shared', 'example-skill', 'scripts'), {
     recursive: true,
   });
-  await mkdir(join(root, 'codex-skills'), { recursive: true });
-  await mkdir(join(root, 'claude-skills'), { recursive: true });
-  await mkdir(join(root, 'cursor-skills'), { recursive: true });
-  await writeFile(join(root, 'shared', 'example-skill', 'SKILL.md'), 'shared skill');
-  await writeFile(join(root, 'shared', 'example-skill', 'scripts', 'run.ts'), "console.log('run')");
-  return root;
+  await mkdir(join(skillsRoot, 'codex-skills'), { recursive: true });
+  await mkdir(join(skillsRoot, 'claude-skills'), { recursive: true });
+  await mkdir(join(skillsRoot, 'cursor-skills'), { recursive: true });
+  await writeFile(join(skillsRoot, 'shared', 'example-skill', 'SKILL.md'), 'shared skill');
+  await writeFile(join(skillsRoot, 'shared', 'example-skill', 'scripts', 'run.ts'), "console.log('run')");
+  return skillsRoot;
 }
 
 describe('mixSharedSkills', () => {

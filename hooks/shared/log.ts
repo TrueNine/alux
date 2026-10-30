@@ -2,7 +2,7 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { inspect } from 'node:util';
-import { emitLogSound, type SoundLogLevel, type SoundLogOptions } from './sound-log';
+import { emitLogSound, type SoundLogLevel, type SoundLogOptions } from './sound-log.ts';
 
 export type LogPlatform = 'claude' | 'codex' | 'cursor' | 'cline';
 export type LogLevel = SoundLogLevel;

@@ -1,10 +1,14 @@
-import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect, test } from 'vitest';
 import { rewritePowerShellGetContent } from './powershell-get-content-utf8';
 
-const hooksDirectory = join(import.meta.dir, '..');
-const entrypoint = join(import.meta.dir, 'rtk-pre-tool-use.ts');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const hooksDirectory = join(__dirname, '..');
+const entrypoint = join(__dirname, 'rtk-pre-tool-use.ts');
 
 test('PreToolUse uses one combined entrypoint to guarantee ordering', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.codex.json'), 'utf8'));
@@ -44,14 +48,11 @@ test.skipIf(process.platform !== 'win32')('entrypoint rewrites real PowerShell G
       workdir: 'C:\\workspace',
     },
   };
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint, '--codex'],
-    stdin: new TextEncoder().encode(JSON.stringify(payload)),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint, '--codex'], {
+    input: JSON.stringify(payload),
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stderr)).toBe('');
   expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
     hookSpecificOutput: {
@@ -67,14 +68,11 @@ test.skipIf(process.platform !== 'win32')('entrypoint rewrites real PowerShell G
 });
 
 test('entrypoint remains fail-open for invalid input', () => {
-  const result = Bun.spawnSync({
-    cmd: ['bun', entrypoint],
-    stdin: new TextEncoder().encode('not json'),
-    stdout: 'pipe',
-    stderr: 'pipe',
+  const result = spawnSync('bun', [entrypoint], {
+    input: 'not json',
   });
 
-  expect(result.exitCode).toBe(0);
+  expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });

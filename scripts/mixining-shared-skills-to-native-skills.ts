@@ -32,10 +32,11 @@ export async function mixSharedSkills(skillsRoot: string): Promise<MixSharedSkil
     throw new Error(`Shared skills directory does not exist: ${sharedRoot}`);
   }
 
-  const [sharedSkills, targetDirectories] = await Promise.all([
+  const [sharedSkills, nativeDirectories] = await Promise.all([
     directoriesWithin(sharedRoot),
     directoriesWithin(skillsRoot).then((directories) => directories.filter((directory) => directory !== 'shared' && directory.endsWith('-skills'))),
   ]);
+  const targetDirectories = nativeDirectories;
   if (targetDirectories.length === 0) {
     throw new Error(`No native skills directories found under: ${skillsRoot}`);
   }

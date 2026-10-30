@@ -182,3 +182,7 @@ build-cache/
 **/.jqwik-database
 .devopsflow
 .workbuddy
+
+### stryker mutation testing
+.stryker-tmp/
+reports/

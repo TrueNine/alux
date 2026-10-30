@@ -5,14 +5,15 @@
 </p>
 
 <p align="center">
-  
-</p>
-
-<p align="center">
-  <img alt="Codex/ChatGPT" src="https://img.shields.io/badge/Codex%2FChatGPT-412991?style=flat-square&logo=openai&logoColor=white"/>
+  <img alt="Codex/ChatGPT" src="https://img.shields.io/badge/Codex%2FChatGPT-412991?style=flat-square&logo=chatgpt&logoColor=white"/>
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-D97757?style=flat-square&logo=anthropic&logoColor=white"/>
   <img alt="Cursor" src="https://img.shields.io/badge/Cursor-000000?style=flat-square&logo=cursor&logoColor=white"/>
   <img alt="Cline" src="https://img.shields.io/badge/Cline-2B2B3B?style=flat-square"/>
+  <img alt="OpenCode" src="https://img.shields.io/badge/OpenCode-000000?style=flat-square&logo=opencode&logoColor=white"/>
+  <img alt="GitHub Copilot" src="https://img.shields.io/badge/GitHub%20Copilot-000000?style=flat-square&logo=githubcopilot&logoColor=white"/>
+</p>
+
+<p align="center">
   <img alt="Golang" src="https://img.shields.io/badge/Golang-00ADD8?style=flat-square&logo=go&logoColor=white"/>
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white"/>
   <img alt="Bun" src="https://img.shields.io/badge/Bun-000000?style=flat-square&logo=bun&logoColor=white"/>
@@ -22,6 +23,29 @@
 </p>
 
 ## Installation Plugin or Update Plugin
+
+### GitHub Copilot
+
+<details>
+
+GitHub Copilot automatically reads the repository guidance in
+`.github/copilot-instructions.md` and `AGENTS.md`. Copilot CLI loads its plugin
+assets from `.copilot-plugin/`. Copilot coding agent uses
+`.github/workflows/copilot-setup-steps.yml` to prepare Bun dependencies.
+The Copilot CLI plugin loads its packaged assets from
+`skills/copilot-skills/` and enables the shared session-start, pre-tool, and
+post-tool hooks from `hooks/hooks.copilot.json`.
+
+GitHub Copilot CLI support is provided through the Alux marketplace entry. The
+plugin manifest is packaged under `.copilot-plugin/`; direct installation from
+the repository root is intentionally not supported.
+
+```bash
+copilot plugin marketplace add TrueNine/alux
+copilot plugin install alux@alux
+```
+
+</details>
 
 ### ChatGPT/Codex and Codex CLI
 
@@ -46,6 +70,8 @@ codex plugin add devopsflow@devopsflow
 
 Cursor support is installed locally from a checked-out copy of this repository. Run one of the following from the repository root to link it into Cursor's local plugin directory.
 
+<details>
+
 macOS and Linux:
 ```bash
 mkdir -p ~/.cursor/plugins/local
@@ -61,9 +87,14 @@ New-Item -ItemType Junction -Path "$HOME\.cursor\plugins\local\alux" -Target (Ge
 
 The plugin exposes the skills under `skills/cursor-skills` and loads `hooks/hooks.cursor.json`. Its Cursor hooks mirror the Claude workflow: `sessionStart` synchronizes derived instruction files, `preToolUse` applies the PowerShell UTF-8 rewrite and rewrites supported Shell commands through RTK before execution, and `postToolUse` compacts verbose fallback output. Cursor only permits shell post-hooks to inject `additional_context`, so fallback summaries are added to the conversation rather than replacing Cursor's original tool result. The `/add-plugin alux` command will only be documented after Alux is available in the Cursor Marketplace.
 
+
+</details>
+
 ### Cline (CLI / SDK / Kanban)
 
 Cline support uses the Cline SDK plugin system. It currently applies to the Cline CLI, SDK, and Kanban surfaces; the VS Code and JetBrains extensions do not load plugins yet.
+
+<details>
 
 install:
 ```bash
@@ -80,4 +111,4 @@ mkdir -p .cline/skills
 cp -R alux/skills/cline-skills/* .cline/skills/
 ```
 
-
+</details>

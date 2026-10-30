@@ -1,8 +1,11 @@
-import { expect, test } from 'bun:test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect, test } from 'vitest';
 import { synchronizeAgentInstructions } from './sync-agent-instructions';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function createWorktree(): string {
   const worktree = mkdtempSync(join(tmpdir(), 'alux-session-start-'));
@@ -207,7 +210,7 @@ test('does not create a Git directory outside a Git worktree', () => {
 });
 
 test('Claude registers the synchronizer for SessionStart', () => {
-  const configuration = JSON.parse(readFileSync(join(import.meta.dir, '..', 'hooks.claude.json'), 'utf8'));
+  const configuration = JSON.parse(readFileSync(join(__dirname, '..', 'hooks.claude.json'), 'utf8'));
 
   expect(configuration.hooks.SessionStart).toEqual([
     {
@@ -223,7 +226,7 @@ test('Claude registers the synchronizer for SessionStart', () => {
 });
 
 test('Cursor registers the shared synchronizer for sessionStart', () => {
-  const configuration = JSON.parse(readFileSync(join(import.meta.dir, '..', 'hooks.cursor.json'), 'utf8'));
+  const configuration = JSON.parse(readFileSync(join(__dirname, '..', 'hooks.cursor.json'), 'utf8'));
 
   expect(configuration.version).toBe(1);
   expect(configuration.hooks.sessionStart).toEqual([
@@ -234,7 +237,7 @@ test('Cursor registers the shared synchronizer for sessionStart', () => {
 });
 
 test('Codex registers the shared synchronizer for SessionStart', () => {
-  const configuration = JSON.parse(readFileSync(join(import.meta.dir, '..', 'hooks.codex.json'), 'utf8'));
+  const configuration = JSON.parse(readFileSync(join(__dirname, '..', 'hooks.codex.json'), 'utf8'));
 
   expect(configuration.hooks.SessionStart).toEqual([
     {
