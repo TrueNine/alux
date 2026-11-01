@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- 新增 `CODEBUDDY.md` 指令同步，沿用 `CLAUDE.md`、`GEMINI.md` 的内容替换、Git 本地排除和孤立文件清理逻辑。
+
 ## 0.0.14 - 2026-09-07
 
 - 新增 Cursor 插件 agents 路径配置：`agents/cursor-agents/`，修正 AGENTS.md 错误识别为 subagents 的问题。

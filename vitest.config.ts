@@ -19,6 +19,7 @@ export default defineConfig({
         '**/*.steps.ts',
         'vitest.config.ts',
         'scripts/mixining-shared-skills-to-native-skills.ts',
+        'scripts/pre-commit/**',
         'skills/**/scripts/svg-to-png.ts',
         'skills/**/scripts/bitmap-to-svg.ts',
         'hooks/post-tool-use/rtk-post-tool-use.ts',
