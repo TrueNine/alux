@@ -3,7 +3,7 @@
 import { type Dirent, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
-const derivedFiles = ['CLAUDE.md', 'GEMINI.md'] as const;
+const derivedFiles = ['CLAUDE.md', 'GEMINI.md', 'CODEBUDDY.md'] as const;
 const ignoredDirectories = new Set(['.git', 'node_modules']);
 
 function findInstructionRoot(workingDirectory: string): string {

@@ -13,7 +13,7 @@ function createWorktree(): string {
   return worktree;
 }
 
-test('derives Claude and Gemini instructions and excludes them locally', () => {
+test('derives Claude, Gemini and CodeBuddy instructions and excludes them locally', () => {
   const worktree = createWorktree();
   const agents = 'Read AGENTS.md before changing AGENTS.md.\n';
   writeFileSync(join(worktree, 'AGENTS.md'), agents);
@@ -25,12 +25,14 @@ test('derives Claude and Gemini instructions and excludes them locally', () => {
   expect(readFileSync(join(worktree, 'AGENTS.md'), 'utf8')).toBe(agents);
   expect(readFileSync(join(worktree, 'CLAUDE.md'), 'utf8')).toBe('Read CLAUDE.md before changing CLAUDE.md.\n');
   expect(readFileSync(join(worktree, 'GEMINI.md'), 'utf8')).toBe('Read GEMINI.md before changing GEMINI.md.\n');
+  expect(readFileSync(join(worktree, 'CODEBUDDY.md'), 'utf8')).toBe('Read CODEBUDDY.md before changing CODEBUDDY.md.\n');
   const exclude = readFileSync(join(worktree, '.git', 'info', 'exclude'), 'utf8');
   expect(exclude.match(/^CLAUDE\.md$/gm)).toHaveLength(1);
   expect(exclude.match(/^GEMINI\.md$/gm)).toHaveLength(1);
+  expect(exclude.match(/^CODEBUDDY\.md$/gm)).toHaveLength(1);
 });
 
-test('derives nested Claude and Gemini instructions', () => {
+test('derives nested Claude, Gemini and CodeBuddy instructions', () => {
   const worktree = createWorktree();
   const nestedDirectory = join(worktree, 'skills', 'example');
   mkdirSync(nestedDirectory, { recursive: true });
@@ -40,9 +42,11 @@ test('derives nested Claude and Gemini instructions', () => {
 
   expect(readFileSync(join(nestedDirectory, 'CLAUDE.md'), 'utf8')).toBe('Read skills/example/CLAUDE.md before changing it.\n');
   expect(readFileSync(join(nestedDirectory, 'GEMINI.md'), 'utf8')).toBe('Read skills/example/GEMINI.md before changing it.\n');
+  expect(readFileSync(join(nestedDirectory, 'CODEBUDDY.md'), 'utf8')).toBe('Read skills/example/CODEBUDDY.md before changing it.\n');
   const exclude = readFileSync(join(worktree, '.git', 'info', 'exclude'), 'utf8');
   expect(exclude).toMatch(/^CLAUDE\.md$/m);
   expect(exclude).toMatch(/^GEMINI\.md$/m);
+  expect(exclude).toMatch(/^CODEBUDDY\.md$/m);
 });
 
 test('derives instructions at every nested directory depth', () => {
@@ -55,6 +59,7 @@ test('derives instructions at every nested directory depth', () => {
 
   expect(readFileSync(join(nestedDirectory, 'CLAUDE.md'), 'utf8')).toBe('Use CLAUDE.md.\n');
   expect(readFileSync(join(nestedDirectory, 'GEMINI.md'), 'utf8')).toBe('Use GEMINI.md.\n');
+  expect(readFileSync(join(nestedDirectory, 'CODEBUDDY.md'), 'utf8')).toBe('Use CODEBUDDY.md.\n');
 });
 
 test('finds every AGENTS.md when SessionStart begins in a nested directory', () => {
@@ -71,6 +76,7 @@ test('finds every AGENTS.md when SessionStart begins in a nested directory', () 
   for (const directory of [worktree, secondLevel, fifthLevel]) {
     expect(readFileSync(join(directory, 'CLAUDE.md'), 'utf8')).toContain('CLAUDE.md');
     expect(readFileSync(join(directory, 'GEMINI.md'), 'utf8')).toContain('GEMINI.md');
+    expect(readFileSync(join(directory, 'CODEBUDDY.md'), 'utf8')).toContain('CODEBUDDY.md');
   }
 });
 
@@ -88,9 +94,11 @@ test('synchronizes initialized submodules into their own Git exclude', () => {
 
   expect(readFileSync(join(nestedDirectory, 'CLAUDE.md'), 'utf8')).toBe('Submodule docs/guide/CLAUDE.md.\n');
   expect(readFileSync(join(nestedDirectory, 'GEMINI.md'), 'utf8')).toBe('Submodule docs/guide/GEMINI.md.\n');
+  expect(readFileSync(join(nestedDirectory, 'CODEBUDDY.md'), 'utf8')).toBe('Submodule docs/guide/CODEBUDDY.md.\n');
   const submoduleExclude = readFileSync(join(submoduleGitDirectory, 'info', 'exclude'), 'utf8');
   expect(submoduleExclude).toMatch(/^CLAUDE\.md$/m);
   expect(submoduleExclude).toMatch(/^GEMINI\.md$/m);
+  expect(submoduleExclude).toMatch(/^CODEBUDDY\.md$/m);
   expect(existsSync(join(worktree, '.git', 'info', 'exclude'))).toBe(false);
 });
 
@@ -104,6 +112,7 @@ test("uses a standalone nested repository's own Git exclude", () => {
 
   expect(readFileSync(join(nestedRepository, '.git', 'info', 'exclude'), 'utf8')).toContain('CLAUDE.md');
   expect(readFileSync(join(nestedRepository, '.git', 'info', 'exclude'), 'utf8')).toContain('GEMINI.md');
+  expect(readFileSync(join(nestedRepository, '.git', 'info', 'exclude'), 'utf8')).toContain('CODEBUDDY.md');
   expect(existsSync(join(worktree, '.git', 'info', 'exclude'))).toBe(false);
 });
 
@@ -118,6 +127,7 @@ test('ignores uninitialized submodule Git metadata safely', () => {
 
   expect(readFileSync(join(submodule, 'CLAUDE.md'), 'utf8')).toBe('Submodule CLAUDE.md.\n');
   expect(readFileSync(join(submodule, 'GEMINI.md'), 'utf8')).toBe('Submodule GEMINI.md.\n');
+  expect(readFileSync(join(submodule, 'CODEBUDDY.md'), 'utf8')).toBe('Submodule CODEBUDDY.md.\n');
   expect(existsSync(join(worktree, '.git', 'modules'))).toBe(false);
 });
 
@@ -135,6 +145,7 @@ test("uses a submodule's common Git exclude when commondir exists", () => {
 
   expect(readFileSync(join(worktree, '.git', 'modules', 'vendor', 'module', 'info', 'exclude'), 'utf8')).toContain('CLAUDE.md');
   expect(readFileSync(join(worktree, '.git', 'modules', 'vendor', 'module', 'info', 'exclude'), 'utf8')).toContain('GEMINI.md');
+  expect(readFileSync(join(worktree, '.git', 'modules', 'vendor', 'module', 'info', 'exclude'), 'utf8')).toContain('CODEBUDDY.md');
   expect(existsSync(join(submoduleGitDirectory, 'info', 'exclude'))).toBe(false);
 });
 
@@ -152,6 +163,7 @@ test('uses the common Git exclude for linked worktrees', () => {
 
   expect(readFileSync(join(commonGitDirectory, 'info', 'exclude'), 'utf8')).toMatch(/^CLAUDE\.md$/m);
   expect(readFileSync(join(commonGitDirectory, 'info', 'exclude'), 'utf8')).toMatch(/^GEMINI\.md$/m);
+  expect(readFileSync(join(commonGitDirectory, 'info', 'exclude'), 'utf8')).toMatch(/^CODEBUDDY\.md$/m);
   expect(existsSync(join(linkedGitDirectory, 'info', 'exclude'))).toBe(false);
 });
 
@@ -166,9 +178,10 @@ test('uses repository-wide excludes for derived instruction names', () => {
   const exclude = readFileSync(join(worktree, '.git', 'info', 'exclude'), 'utf8');
   expect(exclude).toMatch(/^CLAUDE\.md$/m);
   expect(exclude).toMatch(/^GEMINI\.md$/m);
+  expect(exclude).toMatch(/^CODEBUDDY\.md$/m);
 });
 
-test('removes orphaned Claude and Gemini instructions', () => {
+test('removes orphaned Claude, Gemini and CodeBuddy instructions', () => {
   const worktree = createWorktree();
   const orphanDirectory = join(worktree, 'docs');
   const synchronizedDirectory = join(worktree, 'skills');
@@ -176,6 +189,7 @@ test('removes orphaned Claude and Gemini instructions', () => {
   mkdirSync(synchronizedDirectory, { recursive: true });
   writeFileSync(join(orphanDirectory, 'CLAUDE.md'), 'stale Claude instructions\n');
   writeFileSync(join(orphanDirectory, 'GEMINI.md'), 'stale Gemini instructions\n');
+  writeFileSync(join(orphanDirectory, 'CODEBUDDY.md'), 'stale CodeBuddy instructions\n');
   writeFileSync(join(synchronizedDirectory, 'AGENTS.md'), 'Current AGENTS.md\n');
   writeFileSync(join(synchronizedDirectory, 'CLAUDE.md'), 'stale paired Claude instructions\n');
 
@@ -183,19 +197,23 @@ test('removes orphaned Claude and Gemini instructions', () => {
 
   expect(existsSync(join(orphanDirectory, 'CLAUDE.md'))).toBe(false);
   expect(existsSync(join(orphanDirectory, 'GEMINI.md'))).toBe(false);
+  expect(existsSync(join(orphanDirectory, 'CODEBUDDY.md'))).toBe(false);
   expect(readFileSync(join(synchronizedDirectory, 'CLAUDE.md'), 'utf8')).toBe('Current CLAUDE.md\n');
   expect(readFileSync(join(synchronizedDirectory, 'GEMINI.md'), 'utf8')).toBe('Current GEMINI.md\n');
+  expect(readFileSync(join(synchronizedDirectory, 'CODEBUDDY.md'), 'utf8')).toBe('Current CODEBUDDY.md\n');
 });
 
 test('removes orphaned instructions when AGENTS.md is absent', () => {
   const worktree = createWorktree();
   writeFileSync(join(worktree, 'CLAUDE.md'), 'stale Claude instructions\n');
   writeFileSync(join(worktree, 'GEMINI.md'), 'stale Gemini instructions\n');
+  writeFileSync(join(worktree, 'CODEBUDDY.md'), 'stale CodeBuddy instructions\n');
 
   synchronizeAgentInstructions(worktree);
 
   expect(existsSync(join(worktree, 'CLAUDE.md'))).toBe(false);
   expect(existsSync(join(worktree, 'GEMINI.md'))).toBe(false);
+  expect(existsSync(join(worktree, 'CODEBUDDY.md'))).toBe(false);
 });
 
 test('does not create a Git directory outside a Git worktree', () => {
@@ -206,6 +224,7 @@ test('does not create a Git directory outside a Git worktree', () => {
 
   expect(readFileSync(join(worktree, 'CLAUDE.md'), 'utf8')).toBe('Read CLAUDE.md.\n');
   expect(readFileSync(join(worktree, 'GEMINI.md'), 'utf8')).toBe('Read GEMINI.md.\n');
+  expect(readFileSync(join(worktree, 'CODEBUDDY.md'), 'utf8')).toBe('Read CODEBUDDY.md.\n');
   expect(existsSync(join(worktree, '.git'))).toBe(false);
 });
 
