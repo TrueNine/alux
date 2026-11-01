@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from './rtk-pre-tool-use';
 
@@ -62,6 +62,26 @@ test('refreshes the Windows RTK warning marker before an RTK command', () => {
     const marker = join(localAppData, 'rtk', '.hook_warn_last');
     expect(existsSync(marker)).toBe(true);
     expect(Date.now() - statSync(marker).mtimeMs).toBeLessThan(5_000);
+  } finally {
+    rmSync(localAppData, { recursive: true, force: true });
+  }
+});
+
+test.each([
+  ["''", false],
+  ['undefined', true],
+] as const)('marker directory argument %s handles the environment fallback explicitly', (argument, refreshed) => {
+  const localAppData = mkdtempSync(join(tmpdir(), 'rtk-marker-environment-'));
+  try {
+    const result = spawnSync(
+      process.execPath,
+      ['--eval', `import { refreshRtkWarningMarker } from ${JSON.stringify(pathToFileURL(entrypoint).href)}; console.log(refreshRtkWarningMarker('rtk git status', 'win32', ${argument}));`],
+      { env: { ...process.env, LOCALAPPDATA: localAppData } },
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.toString().trim()).toBe(String(refreshed));
+    expect(existsSync(join(localAppData, 'rtk', '.hook_warn_last'))).toBe(refreshed);
   } finally {
     rmSync(localAppData, { recursive: true, force: true });
   }
