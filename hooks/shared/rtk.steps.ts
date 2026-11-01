@@ -179,7 +179,8 @@ Given('a marker check for command {string} on platform {string} with local app d
 Given('a marker check for command {string} on platform {string} with local app data missing', (command: string, platform: string) => {
   state.markerCommand = command;
   state.markerPlatform = platform;
-  state.markerLocalAppData = undefined;
+  // undefined uses the runtime default and would pick up the host's LOCALAPPDATA.
+  state.markerLocalAppData = '';
 });
 
 When('I refresh the RTK warning marker', () => {
