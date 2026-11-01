@@ -1,53 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Inspired by the Stats app icon: https://github.com/exelban/stats -->
-<!-- Original artwork Copyright (c) 2019 Serhiy Mytrovtsiy; licensed under the MIT License. -->
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">ALUX waveform logo</title>
-  <desc id="desc">A red and blue waveform on a dark rounded grid.</desc>
+  <title id="title">ALUX Al monogram</title>
+  <desc id="desc">A bold geometric A and a closely fitted slanted l form the Al monogram for ALUX. The l follows the angle of the A's right leg and retains a short right-facing foot. A warm orange gradient flows across the letters on a transparent square canvas.</desc>
 
   <defs>
-    <linearGradient id="panel" x1="128" y1="25" x2="128" y2="231" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#272829"/>
-      <stop offset="1" stop-color="#1d1e1f"/>
+    <linearGradient id="orange" x1="28" y1="60" x2="228" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffb347"/>
+      <stop offset="0.5" stop-color="#ff852b"/>
+      <stop offset="1" stop-color="#ed541c"/>
     </linearGradient>
-    <linearGradient id="signal-red" x1="128" y1="69" x2="128" y2="129" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#ff695b"/>
-      <stop offset="1" stop-color="#f0473d"/>
-    </linearGradient>
-    <linearGradient id="signal-blue" x1="128" y1="127" x2="128" y2="192" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#428cf5"/>
-      <stop offset="1" stop-color="#2474e2"/>
-    </linearGradient>
-    <pattern id="grid" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="translate(23 23)">
-      <path d="M13 0H0V13" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
-    </pattern>
-    <filter id="panel-shadow" x="10" y="14" width="236" height="236" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.34"/>
-    </filter>
-    <filter id="signal-shadow" x="18" y="62" width="220" height="139" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#000000" flood-opacity="0.45"/>
-    </filter>
-    <clipPath id="panel-clip">
-      <rect x="25" y="25" width="206" height="206" rx="47"/>
-    </clipPath>
   </defs>
 
-  <g filter="url(#panel-shadow)">
-    <rect x="25" y="25" width="206" height="206" rx="47" fill="url(#panel)"/>
-    <rect x="25.5" y="25.5" width="205" height="205" rx="46.5" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
-  </g>
-  <rect x="25" y="25" width="206" height="206" rx="47" fill="url(#grid)"/>
-
-  <g clip-path="url(#panel-clip)" filter="url(#signal-shadow)">
-    <path
-      d="M25 125.5H52.5C56.2 125.5 57.4 119.4 59.1 114.6C60.3 111.3 61.5 108.6 63.2 108.6C65.5 108.6 66.9 113.5 68.5 118.5C70 123.1 71.4 125.5 74.3 125.5C78.6 125.5 80.1 111.9 82 103.7C83.1 99.2 84.4 96.9 86.1 96.9C90.3 96.9 92.9 116.2 97.3 124.2C98.1 125.5 99.1 125.5 100 125.5C104.7 125.5 106.7 101.6 109.4 84.5C111 74.8 112.6 70.3 115.3 70.3C119.5 70.3 121.7 83.3 123.5 95.5C125.5 109.1 127.2 125.5 132.9 125.5C137.5 125.5 140.9 112.8 144.5 105.6C146.5 101.8 148.2 99.7 150.5 99.7C155.2 99.7 158 116.8 163.4 124.4C164.1 125.3 165.1 125.5 166.1 125.5C171 125.5 174.2 110.8 178.2 102.2C180.3 97.8 182.4 95.2 185.4 95.2C191 95.2 194.3 113.1 199.4 122.8C200.5 124.8 202.2 125.5 204.4 125.5H231V128.8H25Z"
-      fill="url(#signal-red)"
-    />
-    <path
-      d="M25 127.3H51.1C55.1 127.3 57.3 136.8 60.7 145.2C62.7 150.2 64.8 153 67.4 153C72.7 153 75.3 132.2 81.7 128.1C82.6 127.5 83.3 127.3 84.4 127.3C90 127.3 93 152.3 98.5 165.2C99.5 167.5 100.9 168.8 102.5 168.8C107.3 168.8 109.5 141 113.9 129.6C114.5 127.9 115.5 127.3 116.5 127.3C122.7 127.3 125.9 162.6 132 184.7C133.4 189.5 135.1 192 137.3 192C143 192 146.4 153.2 152.2 132.4C153.2 128.9 154.4 127.3 156 127.3C161.6 127.3 163.2 155.6 167.7 159.4C168.3 159.9 169 160.1 169.8 160.1C175.3 160.1 176.5 135 181.4 129.2C182.4 128 183.5 127.3 184.8 127.3C189.8 127.3 190.1 143.8 194.2 145.1C195.1 145.4 196 145.2 196.8 144.5C200.6 141.3 199.9 130.8 205.1 128.1C206.1 127.6 207.1 127.3 208.3 127.3H231V130.6H25Z"
-      fill="url(#signal-blue)"
-    />
-    <path d="M25 127.8H231" stroke="#ff6b5e" stroke-width="3.2"/>
-    <path d="M25 129.4H231" stroke="#3d8df4" stroke-width="3.2"/>
+  <!-- Custom outlined letters keep the mark independent of installed fonts. -->
+  <g fill="url(#orange)">
+    <path fill-rule="evenodd" d="M28 196 80 60h30l52 136h-32l-11-30H70l-11 30Zm52-56h29L94.5 99Z"/>
+    <path d="M119 60h29l41.294 108H228v28h-57Z"/>
   </g>
 </svg>
