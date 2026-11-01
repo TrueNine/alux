@@ -4,11 +4,8 @@ pre-commit:
   parallel: false
   commands:
     sync-shared-skills:
-      run: |
-        if ! git diff --cached --quiet -- skills/shared/; then
-          bun scripts/mixining-shared-skills-to-native-skills.ts || exit $?
-        fi
+      run: bun scripts/pre-commit/sync-shared-skills.ts
     lint:
-      run: bun run --if-present lint
+      run: bun scripts/pre-commit/lint.ts
     typescript:
-      run: bun run check:typescript
+      run: bun scripts/pre-commit/typescript.ts
