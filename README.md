@@ -1,4 +1,4 @@
-<h1 align="center">ALUX (Agentic Flux GatewayMonitor)</h1>
+<h1 align="center">ALUX (Agentic Flux Gateway and Monitor)</h1>
 
 <p align="center">
   <img src="assets/logo.svg" alt="ALUX" width="160"/>
