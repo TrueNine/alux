@@ -1,7 +1,7 @@
 {
   "name": "alux",
-  "version": "0.0.14",
-  "description": "",
+  "version": "0.0.15",
+  "description": "Shared skills and workflows for OpenAI Codex",
   "author": {
     "name": "TrueNine",
     "url": "https://github.com/TrueNine",
@@ -10,20 +10,21 @@
   "homepage": "https://github.com/TrueNine/alux",
   "repository": "https://github.com/TrueNine/alux",
   "license": "AGPL-3.0-or-later",
-  "keywords": [],
+  "keywords": ["skills", "coding-agents", "workflows", "codex"],
   "skills": "./skills/codex-skills/",
   "hooks": "./hooks/hooks.codex.json",
+  "mcpServers": "./mcps/.mcp.codex.json",
   "interface": {
     "displayName": "Alux",
-    "shortDescription": "",
-    "longDescription": "",
+    "shortDescription": "Shared skills and workflows for AI coding agents",
+    "longDescription": "Reusable Alux skills, hooks, and workflows that keep OpenAI Codex aligned with the rest of your coding agents.",
     "developerName": "TrueNine",
     "composerIcon": "./assets/logo.svg",
     "logo": "./assets/logo.png",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Read", "Write"],
     "websiteURL": "https://alux.truenine.org",
-    "defaultPrompt": [],
+    "defaultPrompt": ["List the Alux skills available in this repository.", "Show me the Alux workflows I can use for this project."],
     "brandColor": "#2563EB"
   }
 }
