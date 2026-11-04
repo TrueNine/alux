@@ -8,7 +8,7 @@ export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -19,7 +19,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
         ? 'cline'
         : process.argv.includes('--copilot')
           ? 'copilot'
-          : undefined;
+          : process.argv.includes('--zcode')
+            ? 'zcode'
+            : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
@@ -107,7 +109,7 @@ async function main(): Promise<void> {
   }
 
   const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
-  if (!platform || !toolName || (platform === 'claude' ? toolName !== 'Bash' : platform === 'cursor' ? toolName !== 'Shell' : !shellTools.has(toolName))) return;
+  if (!platform || !toolName || (platform === 'claude' || platform === 'zcode' ? toolName !== 'Bash' : platform === 'cursor' ? toolName !== 'Shell' : !shellTools.has(toolName))) return;
   const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);
   const response =
     (platform === 'cursor' ? parseCursorToolOutput(payload.tool_output ?? payload.toolOutput) : undefined) ??

@@ -64,6 +64,22 @@ test('Cursor PostToolUse injects processed Shell output as context', () => {
   ]);
 });
 
+test('ZCode PostToolUse reuses the Claude-compatible Bash protocol', () => {
+  const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.zcode.json'), 'utf8'));
+  const group = configuration.hooks.PostToolUse[0];
+
+  expect(group).toEqual({
+    matcher: '^Bash$',
+    hooks: [
+      {
+        type: 'command',
+        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --zcode`,
+        statusMessage: 'RTK output compaction',
+      },
+    ],
+  });
+});
+
 test('TypeScript entrypoint preserves a no-op hook result', () => {
   const result = spawnSync('bun', [entrypoint], {
     input: 'not json',
@@ -123,6 +139,25 @@ test('Codex entrypoint retains exec tool support', () => {
 
   expect(result.status).toBe(2);
   expect(new TextDecoder().decode(result.stderr)).toContain('Output summary (100 lines)');
+});
+
+test('ZCode entrypoint summarizes verbose Bash output', () => {
+  const result = spawnSync('bun', [entrypoint, '--zcode'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'bun test' },
+      tool_response: {
+        output: verboseOutput(),
+        exit_code: 0,
+      },
+    }),
+  });
+
+  expect(result.status).toBe(2);
+  const replacement = new TextDecoder().decode(result.stderr);
+  expect(replacement).toContain('Output summary (100 lines)');
+  expect(replacement).toContain('... omitted verbose output ...');
+  expect(replacement).not.toContain('line 50');
 });
 
 test('entrypoint without a platform mode is a no-op', () => {

@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/
 
 ## Unreleased
 
+- 新增 ZCode 插件支持：`.zcode-plugin/plugin.json` 清单、`hooks/hooks.zcode.json` 会话与 RTK 钩子、`skills/zcode-skills/` 共享技能分发、`mcps/.mcp.zcode.json` 占位目录，并补充插件契约测试。
+- RTK 钩子新增 `--zcode` 平台，沿用 Claude 兼容的 Bash 协议执行 PowerShell UTF-8 重写、RTK 预处理与输出压缩。
+- 清理遗留的 `.husky/` 目录，完成 Git hooks 向 Lefthook 的迁移收尾。
+
+## 0.0.15 - 2026-11-01
+
 - 新增 `CODEBUDDY.md` 指令同步，沿用 `CLAUDE.md`、`GEMINI.md` 的内容替换、Git 本地排除和孤立文件清理逻辑。
+- 将 Lefthook 提交前检查集中到 `scripts/pre-commit/`，保留共享技能同步、lint 和 TypeScript 检查行为。
+- 更新项目 logo 为橙色 Al 字母图标。
+- 修复 RTK 缺少本地应用数据目录的 BDD 场景，避免回退到宿主机环境变量而误写标记。
 
 ## 0.0.14 - 2026-09-07
 

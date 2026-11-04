@@ -55,6 +55,22 @@ test('Cursor PreToolUse uses the native hook protocol', () => {
   ]);
 });
 
+test('ZCode PreToolUse reuses the Claude-compatible Bash protocol', () => {
+  const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.zcode.json'), 'utf8'));
+  const group = configuration.hooks.PreToolUse[0];
+
+  expect(group).toEqual({
+    matcher: '^Bash$',
+    hooks: [
+      {
+        type: 'command',
+        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --zcode`,
+        statusMessage: 'PowerShell UTF-8 and RTK preprocessing',
+      },
+    ],
+  });
+});
+
 test('refreshes the Windows RTK warning marker before an RTK command', () => {
   const localAppData = mkdtempSync(join(tmpdir(), 'rtk-pre-tool-use-'));
   try {
@@ -154,6 +170,38 @@ test('Claude TypeScript entrypoint ignores non-Bash tools', () => {
   expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
+test('ZCode entrypoint ignores non-Bash tools', () => {
+  const result = spawnSync('bun', [entrypoint, '--zcode'], {
+    input: JSON.stringify({
+      tool_name: 'Read',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
+test.skipIf(process.platform !== 'win32')('ZCode entrypoint rewrites Bash commands over the Claude-compatible protocol', () => {
+  const result = spawnSync('bun', [entrypoint, '--zcode'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+    },
+  });
 });
 
 test.skipIf(process.platform !== 'win32')('Cursor entrypoint rewrites Shell commands with native updated_input', () => {

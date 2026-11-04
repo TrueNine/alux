@@ -7,7 +7,7 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -18,7 +18,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
         ? 'cline'
         : process.argv.includes('--copilot')
           ? 'copilot'
-          : undefined;
+          : process.argv.includes('--zcode')
+            ? 'zcode'
+            : undefined;
 const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
@@ -83,7 +85,7 @@ async function main(): Promise<void> {
     const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
     if (
       !platform ||
-      (platform === 'claude'
+      (platform === 'claude' || platform === 'zcode'
         ? toolName !== 'Bash'
         : platform === 'cursor'
           ? toolName !== 'Shell'

@@ -11,6 +11,7 @@
   <img alt="Cline" src="https://img.shields.io/badge/Cline-2B2B3B?style=flat-square"/>
   <img alt="OpenCode" src="https://img.shields.io/badge/OpenCode-000000?style=flat-square&logo=opencode&logoColor=white"/>
   <img alt="GitHub Copilot" src="https://img.shields.io/badge/GitHub%20Copilot-000000?style=flat-square&logo=githubcopilot&logoColor=white"/>
+  <img alt="ZCode" src="https://img.shields.io/badge/ZCode-7C3AED?style=flat-square"/>
 </p>
 
 <p align="center">
@@ -110,5 +111,19 @@ git clone https://github.com/TrueNine/alux.git
 mkdir -p .cline/skills
 cp -R alux/skills/cline-skills/* .cline/skills/
 ```
+
+</details>
+
+### ZCode
+
+ZCode reads the repository guidance from `AGENTS.md` natively and shares the marketplace catalog at the repository root. The plugin manifest is packaged under `.zcode-plugin/`; it loads the skills under `skills/zcode-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.zcode.json` over the Claude-compatible hook protocol.
+
+<details>
+
+Install from a checked-out copy of this repository:
+
+1. In ZCode, open **Plugin Marketplace → Add → Add Plugin Marketplace** and paste the repository root directory (the parent of `.claude-plugin/`).
+2. Under **Personal → alux**, install the `alux` plugin and manage it afterwards under **Settings → Plugins**.
+3. Create a new task, select the Alux skills from the composer picker, and send a trial prompt.
 
 </details>
