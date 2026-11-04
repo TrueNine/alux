@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.16 - 2026-11-04
 
 - 新增 ZCode 插件支持：`.zcode-plugin/plugin.json` 清单、`hooks/hooks.zcode.json` 会话与 RTK 钩子、`skills/zcode-skills/` 共享技能分发、`mcps/.mcp.zcode.json` 占位目录，并补充插件契约测试。
 - RTK 钩子新增 `--zcode` 平台，沿用 Claude 兼容的 Bash 协议执行 PowerShell UTF-8 重写、RTK 预处理与输出压缩。
