@@ -5,7 +5,7 @@ import { describe, expect, test } from 'vitest';
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const manifestPath = resolve(repositoryRoot, '.zcode-plugin', 'plugin.json');
-const marketplaceManifestPath = resolve(repositoryRoot, '.claude-plugin', 'marketplace.json');
+const marketplaceManifestPath = resolve(repositoryRoot, '.zcode-plugin', 'marketplace.json');
 
 type ZCodePluginManifest = {
   name: string;
@@ -49,20 +49,39 @@ describe('ZCode plugin', () => {
     }
   });
 
-  test('is distributed through the shared Marketplace catalog', async () => {
+  test('declares the single-plugin Marketplace catalog', async () => {
     const marketplace = JSON.parse(await readFile(marketplaceManifestPath, 'utf8')) as {
       name: string;
+      owner: { name: string; email: string };
+      metadata: { description: string };
       plugins: Array<{
         name: string;
         source: string;
+        description: string;
+        version: string;
       }>;
     };
+    const packageJson = JSON.parse(await readFile(resolve(repositoryRoot, 'package.json'), 'utf8')) as { version?: string };
 
-    const entry = marketplace.plugins.find((plugin) => plugin.name === 'alux');
-    expect(entry).toBeDefined();
-    expect(entry?.source).toBe('./');
+    expect(marketplace).toMatchObject({
+      name: 'alux',
+      owner: {
+        name: 'TrueNine',
+        email: 'truenine304520@gmail.com',
+      },
+      plugins: [
+        {
+          name: 'alux',
+          source: '.',
+        },
+      ],
+    });
+    expect(marketplace.metadata.description.length).toBeGreaterThan(0);
+    expect(marketplace.plugins).toHaveLength(1);
+    expect(marketplace.plugins[0]?.description.length).toBeGreaterThan(0);
+    expect(marketplace.plugins[0]?.version).toBe(packageJson.version);
 
-    const pluginRoot = resolve(repositoryRoot, entry?.source ?? '.');
+    const pluginRoot = resolve(repositoryRoot, marketplace.plugins[0]?.source ?? '.');
     expect(await stat(resolve(pluginRoot, '.zcode-plugin', 'plugin.json')).then((value) => value.isFile())).toBe(true);
   });
 

@@ -116,13 +116,13 @@ cp -R alux/skills/cline-skills/* .cline/skills/
 
 ### ZCode
 
-ZCode reads the repository guidance from `AGENTS.md` natively and shares the marketplace catalog at the repository root. The plugin manifest is packaged under `.zcode-plugin/`; it loads the skills under `skills/zcode-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.zcode.json` over the Claude-compatible hook protocol.
+ZCode reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.zcode-plugin/` (ZCode's preferred manifest location) together with its own marketplace catalog at `.zcode-plugin/marketplace.json`; it loads the skills under `skills/zcode-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.zcode.json` over the Claude-compatible hook protocol.
 
 <details>
 
 Install from a checked-out copy of this repository:
 
-1. In ZCode, open **Plugin Marketplace → Add → Add Plugin Marketplace** and paste the repository root directory (the parent of `.claude-plugin/`).
+1. In ZCode, open **Plugin Marketplace → Add → Add Plugin Marketplace** and paste the repository root directory. ZCode auto-discovers the marketplace catalog at the repository root and prefers the `.zcode-plugin/plugin.json` manifest when loading the plugin.
 2. Under **Personal → alux**, install the `alux` plugin and manage it afterwards under **Settings → Plugins**.
 3. Create a new task, select the Alux skills from the composer picker, and send a trial prompt.
 
