@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.19 - 2026-11-07
+
+- 修复 ZCode 市场条目 logo 不显示的问题：ZCode 对 git 来源市场实际读取 `.claude-plugin/marketplace.json`，为其插件条目补充 `icon` 字段，并将市场 icon 统一指向 `assets/logo.png`（官方市场图标均为 PNG，SVG 无法渲染）。
+- ZCode 钩子命令改用 ZCode 原生 `${ZCODE_PLUGIN_ROOT}` 变量替代 Claude 兼容的 `${CLAUDE_PLUGIN_ROOT}`，并同步插件契约测试断言。
+
 ## 0.0.18 - 2026-11-07
 
 - ZCode marketplace 条目新增 `icon` 字段，指向仓库 `assets/logo.svg` 的 raw GitHub 地址，ZCode 市场界面可展示 Alux logo。
