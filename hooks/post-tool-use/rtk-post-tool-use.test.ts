@@ -73,7 +73,7 @@ test('ZCode PostToolUse reuses the Claude-compatible Bash protocol', () => {
     hooks: [
       {
         type: 'command',
-        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --zcode`,
+        command: `bun "\${ZCODE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --zcode`,
         statusMessage: 'RTK output compaction',
       },
     ],

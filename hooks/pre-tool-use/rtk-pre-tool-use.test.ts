@@ -64,7 +64,7 @@ test('ZCode PreToolUse reuses the Claude-compatible Bash protocol', () => {
     hooks: [
       {
         type: 'command',
-        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --zcode`,
+        command: `bun "\${ZCODE_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --zcode`,
         statusMessage: 'PowerShell UTF-8 and RTK preprocessing',
       },
     ],

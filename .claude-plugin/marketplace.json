@@ -14,7 +14,8 @@
         "name": "TrueNine",
         "email": "truenine304520@gmail.com"
       },
-      "source": "./"
+      "source": "./",
+      "icon": "https://raw.githubusercontent.com/TrueNine/alux/main/assets/logo.png"
     }
   ]
 }

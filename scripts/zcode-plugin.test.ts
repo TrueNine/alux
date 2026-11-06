@@ -74,7 +74,7 @@ describe('ZCode plugin', () => {
         {
           name: 'alux',
           source: '.',
-          icon: 'https://raw.githubusercontent.com/TrueNine/alux/main/assets/logo.svg',
+          icon: 'https://raw.githubusercontent.com/TrueNine/alux/main/assets/logo.png',
         },
       ],
     });
@@ -82,7 +82,7 @@ describe('ZCode plugin', () => {
     expect(marketplace.plugins).toHaveLength(1);
     expect(marketplace.plugins[0]?.description.length).toBeGreaterThan(0);
     expect(marketplace.plugins[0]?.version).toBe(packageJson.version);
-    expect((await stat(resolve(repositoryRoot, 'assets', 'logo.svg'))).isFile()).toBe(true);
+    expect((await stat(resolve(repositoryRoot, 'assets', 'logo.png'))).isFile()).toBe(true);
 
     const pluginRoot = resolve(repositoryRoot, marketplace.plugins[0]?.source ?? '.');
     expect(await stat(resolve(pluginRoot, '.zcode-plugin', 'plugin.json')).then((value) => value.isFile())).toBe(true);
@@ -144,14 +144,14 @@ describe('ZCode plugin', () => {
 
     expect(configuration.hooks.SessionStart[0]?.hooks[0]).toMatchObject({
       type: 'command',
-      command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts"`,
+      command: `bun "\${ZCODE_PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts"`,
     });
     for (const event of ['PreToolUse', 'PostToolUse'] as const) {
       const group = configuration.hooks[event][0];
       expect(group?.matcher).toBe('^Bash$');
       expect(group?.hooks[0]).toMatchObject({
         type: 'command',
-        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/${event === 'PreToolUse' ? 'pre-tool-use' : 'post-tool-use'}/rtk-${event === 'PreToolUse' ? 'pre' : 'post'}-tool-use.ts" --zcode`,
+        command: `bun "\${ZCODE_PLUGIN_ROOT}/hooks/${event === 'PreToolUse' ? 'pre-tool-use' : 'post-tool-use'}/rtk-${event === 'PreToolUse' ? 'pre' : 'post'}-tool-use.ts" --zcode`,
       });
     }
   });
