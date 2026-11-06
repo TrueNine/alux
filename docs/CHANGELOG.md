@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.18 - 2026-11-07
+
+- ZCode marketplace 条目新增 `icon` 字段，指向仓库 `assets/logo.svg` 的 raw GitHub 地址，ZCode 市场界面可展示 Alux logo。
+- ZCode 插件契约测试同步断言 icon 地址，并校验其指向的本地资产存在。
+
 ## 0.0.17 - 2026-11-07
 
 - 新增 ZCode 专用 marketplace 目录：`.zcode-plugin/marketplace.json`，对齐各平台独立 catalog 的仓库布局，条目版本与 `package.json` 保持同步。

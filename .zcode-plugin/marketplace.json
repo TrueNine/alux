@@ -12,7 +12,7 @@
       "name": "alux",
       "source": ".",
       "description": "Shared skills and workflows for ZCode",
-      "version": "0.0.17",
+      "version": "0.0.18",
       "icon": "https://raw.githubusercontent.com/TrueNine/alux/main/assets/logo.svg"
     }
   ]
