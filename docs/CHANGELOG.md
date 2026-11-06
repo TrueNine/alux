@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.17 - 2026-11-07
+
+- 新增 ZCode 专用 marketplace 目录：`.zcode-plugin/marketplace.json`，对齐各平台独立 catalog 的仓库布局，条目版本与 `package.json` 保持同步。
+- ZCode 插件契约测试改为断言专用 marketplace 目录，并新增 marketplace 条目与 `package.json` 的版本 lockstep 校验。
+- 更新 README 的 ZCode 安装说明。
+
 ## 0.0.16 - 2026-11-04
 
 - 新增 ZCode 插件支持：`.zcode-plugin/plugin.json` 清单、`hooks/hooks.zcode.json` 会话与 RTK 钩子、`skills/zcode-skills/` 共享技能分发、`mcps/.mcp.zcode.json` 占位目录，并补充插件契约测试。
