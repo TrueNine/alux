@@ -59,6 +59,7 @@ describe('ZCode plugin', () => {
         source: string;
         description: string;
         version: string;
+        icon: string;
       }>;
     };
     const packageJson = JSON.parse(await readFile(resolve(repositoryRoot, 'package.json'), 'utf8')) as { version?: string };
@@ -73,6 +74,7 @@ describe('ZCode plugin', () => {
         {
           name: 'alux',
           source: '.',
+          icon: 'https://raw.githubusercontent.com/TrueNine/alux/main/assets/logo.svg',
         },
       ],
     });
@@ -80,6 +82,7 @@ describe('ZCode plugin', () => {
     expect(marketplace.plugins).toHaveLength(1);
     expect(marketplace.plugins[0]?.description.length).toBeGreaterThan(0);
     expect(marketplace.plugins[0]?.version).toBe(packageJson.version);
+    expect((await stat(resolve(repositoryRoot, 'assets', 'logo.svg'))).isFile()).toBe(true);
 
     const pluginRoot = resolve(repositoryRoot, marketplace.plugins[0]?.source ?? '.');
     expect(await stat(resolve(pluginRoot, '.zcode-plugin', 'plugin.json')).then((value) => value.isFile())).toBe(true);
