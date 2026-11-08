@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Pre-commit 钩子加固:四个前置脚本的 `Bun.spawnSync` 由 `stdin: inherit` 改为 `stdin: ignore`,消除钩子进程在自动化管道 stdin 场景下潜在的阻塞向量(实测完整钩子链 2.5 秒,发布日卡顿为环境性一次性事件)。
+
 ## 0.0.20 - 2026-11-09
 
 - 抽取 `hooks/shared/git-exclude.ts` 共享模块:session-start 钩子与项目资产安装器复用同一套 `.git/info/exclude` 解析(normal / submodule `.git` 指针 / worktree `commondir`)与幂等追加逻辑,消除两份重复实现。
