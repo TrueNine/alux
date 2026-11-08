@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.20 - 2026-11-09
 
 - 抽取 `hooks/shared/git-exclude.ts` 共享模块:session-start 钩子与项目资产安装器复用同一套 `.git/info/exclude` 解析(normal / submodule `.git` 指针 / worktree `commondir`)与幂等追加逻辑,消除两份重复实现。
 - 新增 `scripts/install-project-assets.ts` 项目资产安装器:把复制分发的资产(claude/cline/copilot/grok 四平台规则树与 cline 技能)安装到目标项目,并逐文件写入项目 `.git/info/exclude`(幂等,含项目内的 alux 独立克隆目录),alux 资产保持本地化、不进入用户项目版本管理;支持 submodule 与 worktree 检出(解析 `.git` 指针与 `commondir`,排除写入其真实 git 目录),alux 自身作为 submodule 时不再误加排除;README 复制命令统一切换为该脚本。
