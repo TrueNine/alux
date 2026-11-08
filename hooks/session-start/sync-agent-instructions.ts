@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
-import { type Dirent, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { type Dirent, existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { appendGitExclude } from '../shared/git-exclude.ts';
 
 const derivedFiles = ['CLAUDE.md', 'GEMINI.md', 'CODEBUDDY.md'] as const;
 const ignoredDirectories = new Set(['.git', 'node_modules']);
@@ -76,40 +77,6 @@ function removeOrphanedDerivedFiles(worktree: string, agentsFiles: string[]): vo
   }
 }
 
-function gitExcludePath(worktree: string): string | undefined {
-  const gitPath = join(worktree, '.git');
-  try {
-    if (!existsSync(gitPath)) return;
-    if (statSync(gitPath).isDirectory()) return join(gitPath, 'info', 'exclude');
-
-    const gitFile = readFileSync(gitPath, 'utf8').trim();
-    const match = gitFile.match(/^gitdir:\s*(.+)$/im);
-    if (!match) return;
-    const gitDirectory = resolve(dirname(gitPath), match[1].trim());
-    if (!existsSync(gitDirectory)) return;
-    const commonDirectoryPath = join(gitDirectory, 'commondir');
-    if (existsSync(commonDirectoryPath)) {
-      const commonDirectory = readFileSync(commonDirectoryPath, 'utf8').trim();
-      if (commonDirectory) {
-        return join(resolve(gitDirectory, commonDirectory), 'info', 'exclude');
-      }
-    }
-    return join(gitDirectory, 'info', 'exclude');
-  } catch {
-    return;
-  }
-}
-
-function appendExcludedFiles(excludePath: string, files: string[]): void {
-  const existing = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
-  const entries = existing.split(/\r?\n/);
-  const missing = files.filter((file) => !entries.includes(file));
-  if (missing.length === 0) return;
-
-  const separator = existing && !existing.endsWith('\n') ? '\n' : '';
-  writeFileSync(excludePath, `${existing}${separator}${missing.join('\n')}\n`);
-}
-
 export function synchronizeAgentInstructions(workingDirectory: string): void {
   try {
     const worktree = findInstructionRoot(workingDirectory);
@@ -141,10 +108,7 @@ export function synchronizeAgentInstructions(workingDirectory: string): void {
 
     for (const repository of repositories) {
       try {
-        const excludePath = gitExcludePath(repository);
-        if (!excludePath) continue;
-        mkdirSync(dirname(excludePath), { recursive: true });
-        appendExcludedFiles(excludePath, [...derivedFiles]);
+        appendGitExclude(repository, [...derivedFiles]);
       } catch {
         // Continue updating other repositories when one Git directory is unavailable.
       }

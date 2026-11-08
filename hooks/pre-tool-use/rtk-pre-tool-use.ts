@@ -7,7 +7,7 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -20,8 +20,11 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
           ? 'copilot'
           : process.argv.includes('--zcode')
             ? 'zcode'
-            : undefined;
+            : process.argv.includes('--grok')
+              ? 'grok'
+              : undefined;
 const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
+const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
 type CommandOptimizer = (command: string, cwd?: string) => string | undefined;
@@ -91,7 +94,9 @@ async function main(): Promise<void> {
           ? toolName !== 'Shell'
           : platform === 'cline'
             ? !clineShellTools.has(toolName)
-            : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
+            : platform === 'grok'
+              ? !grokShellTools.has(toolName)
+              : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
     )
       return;
     const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);

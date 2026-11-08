@@ -5,6 +5,8 @@ pre-commit:
   commands:
     sync-shared-skills:
       run: bun scripts/pre-commit/sync-shared-skills.ts
+    sync-shared-rules:
+      run: bun scripts/pre-commit/sync-shared-rules.ts
     lint:
       run: bun scripts/pre-commit/lint.ts
     typescript:

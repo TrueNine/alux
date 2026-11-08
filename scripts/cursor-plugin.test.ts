@@ -13,6 +13,7 @@ type CursorPluginManifest = {
   category: string;
   tags: string[];
   skills: string;
+  rules: string;
   hooks: string;
 };
 
@@ -38,12 +39,14 @@ describe('Cursor plugin', () => {
       logo: 'assets/logo.svg',
       category: 'developer-tools',
       skills: './skills/cursor-skills',
+      rules: './rules/cursor-rules',
       hooks: './hooks/hooks.cursor.json',
     });
     expect(manifest.tags).toEqual(expect.arrayContaining(['agent-skills', 'agent-instructions', 'developer-workflows']));
     expect((await stat(resolve(repositoryRoot, manifest.hooks))).isFile()).toBe(true);
     expect((await stat(resolve(repositoryRoot, manifest.logo))).isFile()).toBe(true);
     expect((await stat(resolve(repositoryRoot, manifest.skills))).isDirectory()).toBe(true);
+    expect((await stat(resolve(repositoryRoot, manifest.rules))).isDirectory()).toBe(true);
   });
 
   test('declares the single-plugin Marketplace catalog', async () => {

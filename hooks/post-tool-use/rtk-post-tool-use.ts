@@ -7,8 +7,9 @@ import '../shared/log.ts';
 export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
+const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -21,7 +22,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
           ? 'copilot'
           : process.argv.includes('--zcode')
             ? 'zcode'
-            : undefined;
+            : process.argv.includes('--grok')
+              ? 'grok'
+              : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
@@ -31,7 +34,7 @@ export function text(value: unknown): string {
   if (Array.isArray(value)) return value.map(text).filter(Boolean).join('\n');
   const object = asObject(value);
   if (!object) return '';
-  for (const key of ['aggregated_output', 'output', 'text', 'textResultForLlm', 'text_result_for_llm', 'stdout', 'stderr', 'message']) {
+  for (const key of ['aggregated_output', 'output', 'text', 'output_for_prompt', 'textResultForLlm', 'text_result_for_llm', 'stdout', 'stderr', 'message']) {
     const result = text(object[key]);
     if (result) return result;
   }
@@ -40,7 +43,7 @@ export function text(value: unknown): string {
 
 function originalOutput(response?: JsonObject): string {
   if (!response) return '';
-  for (const key of ['aggregated_output', 'output', 'text']) {
+  for (const key of ['aggregated_output', 'output', 'text', 'output_for_prompt']) {
     const result = text(response[key]);
     if (result) return result;
   }
@@ -109,7 +112,18 @@ async function main(): Promise<void> {
   }
 
   const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
-  if (!platform || !toolName || (platform === 'claude' || platform === 'zcode' ? toolName !== 'Bash' : platform === 'cursor' ? toolName !== 'Shell' : !shellTools.has(toolName))) return;
+  if (
+    !platform ||
+    !toolName ||
+    (platform === 'claude' || platform === 'zcode'
+      ? toolName !== 'Bash'
+      : platform === 'cursor'
+        ? toolName !== 'Shell'
+        : platform === 'grok'
+          ? !grokShellTools.has(toolName)
+          : !shellTools.has(toolName))
+  )
+    return;
   const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);
   const response =
     (platform === 'cursor' ? parseCursorToolOutput(payload.tool_output ?? payload.toolOutput) : undefined) ??

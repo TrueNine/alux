@@ -1,0 +1,17 @@
+{
+  "name": "alux",
+  "version": "0.0.19",
+  "description": "Shared skills and workflows for Grok Build",
+  "author": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com",
+    "url": "https://truenine.org"
+  },
+  "homepage": "https://github.com/TrueNine/alux",
+  "repository": "https://github.com/TrueNine/alux",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["skills", "coding-agents", "workflows", "grok"],
+  "skills": "./skills/grok-skills",
+  "hooks": "./hooks/hooks.grok.json",
+  "mcpServers": "./mcps/.mcp.grok.json"
+}

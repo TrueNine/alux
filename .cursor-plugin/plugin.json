@@ -16,5 +16,6 @@
   "tags": ["agent-skills", "agent-instructions", "developer-workflows"],
   "skills": "./skills/cursor-skills",
   "agents": "./agents/cursor-agents",
+  "rules": "./rules/cursor-rules",
   "hooks": "./hooks/hooks.cursor.json"
 }

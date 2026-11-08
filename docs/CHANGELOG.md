@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- 抽取 `hooks/shared/git-exclude.ts` 共享模块:session-start 钩子与项目资产安装器复用同一套 `.git/info/exclude` 解析(normal / submodule `.git` 指针 / worktree `commondir`)与幂等追加逻辑,消除两份重复实现。
+- 新增 `scripts/install-project-assets.ts` 项目资产安装器:把复制分发的资产(claude/cline/copilot/grok 四平台规则树与 cline 技能)安装到目标项目,并逐文件写入项目 `.git/info/exclude`(幂等,含项目内的 alux 独立克隆目录),alux 资产保持本地化、不进入用户项目版本管理;支持 submodule 与 worktree 检出(解析 `.git` 指针与 `commondir`,排除写入其真实 git 目录),alux 自身作为 submodule 时不再误加排除;README 复制命令统一切换为该脚本。
+- 共享规则体系扩展至五棵平台树:新增 `rules/cline-rules/`(`.cline/rules/` 目标,与 Claude 同款 `paths` glob)与 `rules/copilot-rules/`(`.github/instructions/` 目标,`applyTo` 逗号分隔 glob 字符串);确认 Codex、OpenCode、ZCode 无按文件条件加载机制,不建树。
+- 新增共享规则体系:`rules/shared/` 真源 + `sync:rules` 同步脚本,按平台转换 frontmatter 后分发到 `rules/cursor-rules/`(`.mdc`,globs/alwaysApply)、`rules/claude-rules/`(`.md`,paths)与 `rules/grok-rules/`(仅正文,Grok 无条件加载)。
+- Cursor 插件清单新增 `rules` 字段指向 `rules/cursor-rules/`,规则随插件分发、glob 匹配生效;Claude Code 与 Grok 插件清单均无 rules 组件,改由 README 指引复制到项目 `.claude/rules/` 与 `.grok/rules/`。
+- Lefthook 预提交新增 `sync-shared-rules` 钩子,`rules/shared/` 变更时自动重新同步各平台规则树。
+- 新增 Grok Build 插件支持:`.grok-plugin/plugin.json` 清单与 `.grok-plugin/marketplace.json` 市场目录、`hooks/hooks.grok.json` 会话与 RTK 钩子、`skills/grok-skills/` 共享技能分发、`mcps/.mcp.grok.json` 占位目录,并补充插件契约测试。
+- RTK 钩子新增 `--grok` 平台:`^Bash$` matcher 通过 Grok 的 Claude 工具别名命中原生 `run_terminal_command` 工具,预处理沿用 Claude 兼容的 `hookSpecificOutput` 改写协议,后置压缩从 Grok 工具结果的 `output_for_prompt` 字段读取输出。
+
 ## 0.0.19 - 2026-11-07
 
 - 修复 ZCode 市场条目 logo 不显示的问题：ZCode 对 git 来源市场实际读取 `.claude-plugin/marketplace.json`，为其插件条目补充 `icon` 字段，并将市场 icon 统一指向 `assets/logo.png`（官方市场图标均为 PNG，SVG 无法渲染）。

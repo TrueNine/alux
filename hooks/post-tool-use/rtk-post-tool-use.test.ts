@@ -80,6 +80,21 @@ test('ZCode PostToolUse reuses the Claude-compatible Bash protocol', () => {
   });
 });
 
+test('Grok PostToolUse reuses the Claude-compatible Bash protocol', () => {
+  const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.grok.json'), 'utf8'));
+  const group = configuration.hooks.PostToolUse[0];
+
+  expect(group).toEqual({
+    matcher: '^Bash$',
+    hooks: [
+      {
+        type: 'command',
+        command: `bun "\${GROK_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --grok`,
+      },
+    ],
+  });
+});
+
 test('TypeScript entrypoint preserves a no-op hook result', () => {
   const result = spawnSync('bun', [entrypoint], {
     input: 'not json',
@@ -149,6 +164,27 @@ test('ZCode entrypoint summarizes verbose Bash output', () => {
       tool_response: {
         output: verboseOutput(),
         exit_code: 0,
+      },
+    }),
+  });
+
+  expect(result.status).toBe(2);
+  const replacement = new TextDecoder().decode(result.stderr);
+  expect(replacement).toContain('Output summary (100 lines)');
+  expect(replacement).toContain('... omitted verbose output ...');
+  expect(replacement).not.toContain('line 50');
+});
+
+test('Grok entrypoint summarizes verbose run_terminal_command output', () => {
+  const result = spawnSync('bun', [entrypoint, '--grok'], {
+    input: JSON.stringify({
+      toolName: 'run_terminal_command',
+      toolInput: { command: 'bun test' },
+      toolResult: {
+        type: 'Bash',
+        command: 'bun test',
+        exit_code: 0,
+        output_for_prompt: verboseOutput(),
       },
     }),
   });
