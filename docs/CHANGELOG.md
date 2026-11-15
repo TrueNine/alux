@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.21 - 2026-11-15
 
 - 新增 CodeBuddy Code 插件支持：`.codebuddy-plugin/plugin.json` 清单与 `.codebuddy-plugin/marketplace.json` 市场目录、`hooks/hooks.codebuddy.json` 会话与 RTK 钩子、`skills/codebuddy-skills/` 共享技能分发、`mcps/.mcp.codebuddy.json` 占位目录,并补充插件契约测试。
 - RTK 钩子新增 `--codebuddy` 平台:沿用 Claude 兼容的 Bash 协议,预处理通过 `hookSpecificOutput.modifiedInput` 改写命令,后置压缩通过 `hookSpecificOutput.updatedToolOutput` 替换工具结果。
