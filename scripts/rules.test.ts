@@ -33,13 +33,14 @@ describe('Shared agent rules', () => {
     const sharedNames = await listRuleNames(resolve(rulesRoot, 'shared'), '.md');
     expect(sharedNames.length).toBeGreaterThan(0);
 
-    const [cursorNames, claudeNames, clineNames, codebuddyNames, copilotNames, grokNames] = await Promise.all([
+    const [cursorNames, claudeNames, clineNames, codebuddyNames, copilotNames, grokNames, qoderNames] = await Promise.all([
       listRuleNames(resolve(rulesRoot, 'cursor-rules'), '.mdc'),
       listRuleNames(resolve(rulesRoot, 'claude-rules'), '.md'),
       listRuleNames(resolve(rulesRoot, 'cline-rules'), '.md'),
       listRuleNames(resolve(rulesRoot, 'codebuddy-rules'), '.md'),
       listRuleNames(resolve(rulesRoot, 'copilot-rules'), '.instructions.md'),
       listRuleNames(resolve(rulesRoot, 'grok-rules'), '.md'),
+      listRuleNames(resolve(rulesRoot, 'qoder-rules'), '.md'),
     ]);
     expect(cursorNames).toEqual(sharedNames);
     expect(claudeNames).toEqual(sharedNames);
@@ -47,6 +48,7 @@ describe('Shared agent rules', () => {
     expect(codebuddyNames).toEqual(sharedNames);
     expect(copilotNames).toEqual(sharedNames);
     expect(grokNames).toEqual(sharedNames);
+    expect(qoderNames).toEqual(sharedNames);
 
     for (const name of sharedNames) {
       const shared = parseSharedRule(name, await readFile(resolve(rulesRoot, 'shared', `${name}.md`), 'utf8'));
@@ -76,6 +78,9 @@ describe('Shared agent rules', () => {
 
       const grok = await readFile(resolve(rulesRoot, 'grok-rules', `${name}.md`), 'utf8');
       expect(grok).toBe(shared.body);
+
+      const qoder = await readFile(resolve(rulesRoot, 'qoder-rules', `${name}.md`), 'utf8');
+      expect(qoder).toBe(claude);
     }
   });
 
@@ -87,21 +92,25 @@ describe('Shared agent rules', () => {
       const claude = await readFile(resolve(rulesRoot, 'claude-rules', `${name}.md`), 'utf8');
       const codebuddy = await readFile(resolve(rulesRoot, 'codebuddy-rules', `${name}.md`), 'utf8');
       const copilot = await readFile(resolve(rulesRoot, 'copilot-rules', `${name}.instructions.md`), 'utf8');
+      const qoder = await readFile(resolve(rulesRoot, 'qoder-rules', `${name}.md`), 'utf8');
       const cursorFrontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(cursor)?.[1] ?? '';
       const claudeFrontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(claude)?.[1] ?? '';
       const codebuddyFrontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(codebuddy)?.[1] ?? '';
       const copilotFrontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(copilot)?.[1] ?? '';
+      const qoderFrontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(qoder)?.[1] ?? '';
 
       if (shared.globs?.length) {
         expect(frontmatterField(cursorFrontmatter, 'globs'), `${name} must scope cursor via globs`).toBeTruthy();
         expect(frontmatterField(claudeFrontmatter, 'paths'), `${name} must scope claude via paths`).toBeTruthy();
         expect(frontmatterField(codebuddyFrontmatter, 'paths'), `${name} must scope codebuddy via paths`).toBeTruthy();
         expect(frontmatterField(copilotFrontmatter, 'applyTo'), `${name} must scope copilot via applyTo`).toBeTruthy();
+        expect(frontmatterField(qoderFrontmatter, 'paths'), `${name} must scope qoder via paths`).toBeTruthy();
       } else {
         expect(frontmatterField(cursorFrontmatter, 'alwaysApply'), `${name} must apply always in cursor`).toBe('true');
         expect(claudeFrontmatter).not.toMatch(/^paths:/m);
         expect(codebuddyFrontmatter).not.toMatch(/^paths:/m);
         expect(frontmatterField(copilotFrontmatter, 'applyTo'), `${name} must apply to every copilot file`).toBe("'**'");
+        expect(qoderFrontmatter).not.toMatch(/^paths:/m);
       }
     }
   });

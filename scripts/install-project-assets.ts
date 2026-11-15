@@ -4,7 +4,7 @@ import { cp, mkdir, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { appendGitExclude } from '../hooks/shared/git-exclude.ts';
 
-export type InstallPlatform = 'claude' | 'cline' | 'codebuddy' | 'copilot' | 'grok';
+export type InstallPlatform = 'claude' | 'cline' | 'codebuddy' | 'copilot' | 'grok' | 'qoder';
 
 export type InstallAsset = { source: string; target: string };
 
@@ -23,6 +23,7 @@ export const PLATFORM_ASSETS: Record<InstallPlatform, InstallAsset[]> = {
   codebuddy: [{ source: 'rules/codebuddy-rules', target: '.codebuddy/rules' }],
   copilot: [{ source: 'rules/copilot-rules', target: '.github/instructions' }],
   grok: [{ source: 'rules/grok-rules', target: '.grok/rules' }],
+  qoder: [{ source: 'rules/qoder-rules', target: '.qoder/rules' }],
 };
 
 const PLATFORMS = Object.keys(PLATFORM_ASSETS) as InstallPlatform[];
@@ -82,7 +83,7 @@ export async function installProjectAssets(projectDirectory: string, options: { 
 }
 
 function usage(): never {
-  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|codebuddy|copilot|grok>]...');
+  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|codebuddy|copilot|grok|qoder>]...');
   process.exit(2);
 }
 

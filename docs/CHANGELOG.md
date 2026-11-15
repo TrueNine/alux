@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.22 - 2026-11-16
+
+- 全部平台 MCP 配置接入 CodeGraph：各插件清单的 `mcps/.mcp.*.json` 统一声明 `codegraph serve --mcp`(OpenCode 使用原生 `mcp.servers` 格式,Copilot 使用 `type: local`),Cursor 通过根目录 `mcp.json` 自动发现,并补充跨平台 MCP 契约测试。
+- Cline 插件接入 CodeGraph MCP：声明 `mcp` capability,在 `setup` 中通过 `api.registerMcpServer` 注册 `codegraph serve --mcp`(stdio),对不支持 MCP 注册的宿主 fail-open,并补充契约测试。
+- 修复 Copilot RTK 钩子不生效:Copilot camelCase 载荷使用小写运行时工具名(`bash`/`powershell`),此前落入默认 `Bash|exec` 过滤导致改写与压缩均不触发;现按 `copilotShellTools` 过滤,后置钩子读取 `toolResult.textResultForLlm` 并改用 `modifiedResult` 真正替换冗长结果,补充 Copilot 入口契约测试。
+- 新增 Qoder 插件支持(Qoder CLI 与 Qoder IDE)：`.qoder-plugin/plugin.json` 清单与 `.qoder-plugin/marketplace.json` 市场目录、`hooks/hooks.qoder.json` 会话与 RTK 钩子、`skills/qoder-skills/` 共享技能分发、`mcps/.mcp.qoder.json` MCP 配置,并补充插件契约测试。
+- RTK 钩子新增 `--qoder` 平台:沿用 Claude 兼容的 Bash 协议,预处理通过 `hookSpecificOutput.updatedInput` 改写命令,后置压缩通过 `hookSpecificOutput.updatedToolOutput` 替换工具结果。
+- 新增 `rules/qoder-rules/` 规则树:Qoder 的 `.qoder/rules/` 支持与 Claude 相同的 `paths` frontmatter,纳入 `sync:rules` 与项目资产安装器(`--platform qoder`)。
+
 ## 0.0.21 - 2026-11-15
 
 - 新增 CodeBuddy Code 插件支持：`.codebuddy-plugin/plugin.json` 清单与 `.codebuddy-plugin/marketplace.json` 市场目录、`hooks/hooks.codebuddy.json` 会话与 RTK 钩子、`skills/codebuddy-skills/` 共享技能分发、`mcps/.mcp.codebuddy.json` 占位目录,并补充插件契约测试。

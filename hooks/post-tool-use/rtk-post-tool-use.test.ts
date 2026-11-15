@@ -212,6 +212,65 @@ test('CodeBuddy entrypoint replaces verbose Bash output', () => {
   expect(output.hookSpecificOutput.updatedToolOutput).not.toContain('line 50');
 });
 
+test('Qoder entrypoint replaces verbose Bash output', () => {
+  const result = spawnSync('bun', [entrypoint, '--qoder'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'bun test' },
+      tool_response: {
+        output: verboseOutput(),
+        exit_code: 0,
+      },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  const output = JSON.parse(new TextDecoder().decode(result.stdout));
+  expect(output.hookSpecificOutput.hookEventName).toBe('PostToolUse');
+  expect(output.hookSpecificOutput.updatedToolOutput).toContain('Output summary (100 lines)');
+  expect(output.hookSpecificOutput.updatedToolOutput).toContain('... omitted verbose output ...');
+  expect(output.hookSpecificOutput.updatedToolOutput).not.toContain('line 50');
+});
+
+test('Copilot entrypoint replaces verbose bash output', () => {
+  const result = spawnSync('bun', [entrypoint, '--copilot'], {
+    input: JSON.stringify({
+      toolName: 'bash',
+      toolArgs: { command: 'bun test' },
+      toolResult: {
+        resultType: 'success',
+        textResultForLlm: verboseOutput(),
+      },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  const output = JSON.parse(new TextDecoder().decode(result.stdout));
+  expect(output.modifiedResult.resultType).toBe('success');
+  expect(output.modifiedResult.textResultForLlm).toContain('Output summary (100 lines)');
+  expect(output.modifiedResult.textResultForLlm).toContain('... omitted verbose output ...');
+  expect(output.modifiedResult.textResultForLlm).not.toContain('line 50');
+});
+
+test('Copilot entrypoint ignores non-shell tools', () => {
+  const result = spawnSync('bun', [entrypoint, '--copilot'], {
+    input: JSON.stringify({
+      toolName: 'edit',
+      toolArgs: { command: 'bun test' },
+      toolResult: {
+        resultType: 'success',
+        textResultForLlm: verboseOutput(),
+      },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
 test('Grok entrypoint summarizes verbose run_terminal_command output', () => {
   const result = spawnSync('bun', [entrypoint, '--grok'], {
     input: JSON.stringify({

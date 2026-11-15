@@ -13,6 +13,7 @@ type CopilotPluginManifest = {
   version: string;
   skills: string;
   hooks: string;
+  mcpServers: string;
 };
 
 describe('GitHub Copilot CLI plugin', () => {
@@ -23,10 +24,24 @@ describe('GitHub Copilot CLI plugin', () => {
       name: 'alux',
       skills: '../skills/copilot-skills',
       hooks: '../hooks/hooks.copilot.json',
+      mcpServers: '../mcps/.mcp.copilot.json',
     });
-    expect(manifest.version).toBe('0.0.21');
+    expect(manifest.version).toBe('0.0.22');
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.hooks))).isFile()).toBe(true);
+    expect((await stat(resolve(pluginRoot, manifest.mcpServers))).isFile()).toBe(true);
+  });
+
+  test('provides the shared CodeGraph MCP server', async () => {
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CopilotPluginManifest;
+    const configuration = JSON.parse(await readFile(resolve(pluginRoot, manifest.mcpServers), 'utf8')) as {
+      mcpServers?: Record<string, { type?: string; command?: string; args?: string[] }>;
+    };
+    expect(configuration.mcpServers?.codegraph).toMatchObject({
+      type: 'local',
+      command: 'codegraph',
+      args: ['serve', '--mcp'],
+    });
   });
 
   test('declares the repository marketplace catalog', async () => {

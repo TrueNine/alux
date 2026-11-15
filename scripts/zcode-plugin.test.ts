@@ -156,9 +156,15 @@ describe('ZCode plugin', () => {
     }
   });
 
-  test('keeps the MCP server catalog as an optional empty placeholder', async () => {
+  test('provides the shared CodeGraph MCP server', async () => {
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as ZCodePluginManifest;
-    const mcpServers = JSON.parse(await readFile(resolve(repositoryRoot, manifest.mcpServers), 'utf8'));
-    expect(mcpServers).toEqual({});
+    const configuration = JSON.parse(await readFile(resolve(repositoryRoot, manifest.mcpServers), 'utf8')) as {
+      mcpServers?: Record<string, { type?: string; command?: string; args?: string[] }>;
+    };
+    expect(configuration.mcpServers?.codegraph).toMatchObject({
+      type: 'stdio',
+      command: 'codegraph',
+      args: ['serve', '--mcp'],
+    });
   });
 });

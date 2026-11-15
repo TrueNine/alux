@@ -49,6 +49,19 @@ describe('Cursor plugin', () => {
     expect((await stat(resolve(repositoryRoot, manifest.rules))).isDirectory()).toBe(true);
   });
 
+  test('provides the shared CodeGraph MCP server', async () => {
+    const configuration = JSON.parse(await readFile(resolve(repositoryRoot, 'mcp.json'), 'utf8')) as {
+      $schema?: string;
+      mcpServers?: Record<string, { type?: string; command?: string; args?: string[] }>;
+    };
+    expect(configuration.$schema).toBe('https://agent-plugins.org/schemas/1.0.0/mcp.schema.json');
+    expect(configuration.mcpServers?.codegraph).toMatchObject({
+      type: 'stdio',
+      command: 'codegraph',
+      args: ['serve', '--mcp'],
+    });
+  });
+
   test('declares the single-plugin Marketplace catalog', async () => {
     const marketplace = JSON.parse(await readFile(marketplaceManifestPath, 'utf8')) as {
       name: string;

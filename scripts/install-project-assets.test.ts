@@ -27,6 +27,7 @@ async function createAluxRoot(): Promise<string> {
   await createFixtureTree(root, 'rules/codebuddy-rules', ['codebuddy-rule.md']);
   await createFixtureTree(root, 'rules/copilot-rules', ['copilot-rule.instructions.md']);
   await createFixtureTree(root, 'rules/grok-rules', ['grok-rule.md']);
+  await createFixtureTree(root, 'rules/qoder-rules', ['qoder-rule.md']);
   await createFixtureTree(root, 'skills/cline-skills/example-skill', ['SKILL.md', 'scripts/run.ts']);
   return root;
 }
@@ -60,6 +61,7 @@ describe('installProjectAssets', () => {
       '.codebuddy/rules/codebuddy-rule.md',
       '.github/instructions/copilot-rule.instructions.md',
       '.grok/rules/grok-rule.md',
+      '.qoder/rules/qoder-rule.md',
     ]);
     expect(result.excludedEntries).toEqual([...result.copiedFiles]);
     expect(await readExclude(project)).toEqual([...result.copiedFiles]);
@@ -181,6 +183,6 @@ describe('installProjectAssets', () => {
   });
 
   test('covers every copy-distributed platform target', () => {
-    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'codebuddy', 'copilot', 'grok']);
+    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'codebuddy', 'copilot', 'grok', 'qoder']);
   });
 });

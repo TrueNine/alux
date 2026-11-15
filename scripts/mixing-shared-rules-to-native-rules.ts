@@ -105,6 +105,11 @@ export function renderCodebuddyRule(rule: SharedRule): string {
   return renderClaudeRule(rule);
 }
 
+/** Renders the Qoder rule document (`.md`): Qoder conditions rules on the same `paths` frontmatter as Claude. */
+export function renderQoderRule(rule: SharedRule): string {
+  return renderClaudeRule(rule);
+}
+
 /** Renders the Copilot instruction document (`.instructions.md`): `applyTo` takes one comma-separated glob string. */
 export function renderCopilotRule(rule: SharedRule): string {
   const globs = rule.globs?.length ? rule.globs : ['**'];
@@ -139,6 +144,7 @@ export async function mixSharedRules(rulesRoot: string): Promise<MixSharedRulesR
     'codebuddy-rules': (rule) => renderCodebuddyRule(rule),
     'copilot-rules': (rule) => renderCopilotRule(rule),
     'grok-rules': (rule) => renderGrokRule(rule),
+    'qoder-rules': (rule) => renderQoderRule(rule),
   };
   const extensions: Record<string, string> = {
     'cursor-rules': '.mdc',
@@ -147,6 +153,7 @@ export async function mixSharedRules(rulesRoot: string): Promise<MixSharedRulesR
     'codebuddy-rules': '.md',
     'copilot-rules': '.instructions.md',
     'grok-rules': '.md',
+    'qoder-rules': '.md',
   };
 
   const copiedRules: string[] = [];

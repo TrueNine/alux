@@ -61,3 +61,13 @@ export function compactAfterToolOutput(toolName: string, output: unknown): After
 export function synchronizeWorkspaceInstructions(root?: string): void {
   synchronizeAgentInstructions(root ?? process.cwd());
 }
+
+export type CodegraphMcpRegistration = {
+  name: string;
+  transport: { type: 'stdio'; command: string; args: string[] };
+};
+
+/** Describes the shared CodeGraph MCP server for hosts that register MCP servers programmatically. */
+export function codegraphMcpServer(): CodegraphMcpRegistration {
+  return { name: 'codegraph', transport: { type: 'stdio', command: 'codegraph', args: ['serve', '--mcp'] } };
+}

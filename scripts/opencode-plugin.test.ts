@@ -55,6 +55,17 @@ describe('OpenCode plugin', () => {
     expect((await stat(resolve(repositoryRoot, manifest.hooks))).isFile()).toBe(true);
   });
 
+  test('provides the shared CodeGraph MCP server', async () => {
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as OpenCodePluginManifest;
+    const configuration = JSON.parse(await readFile(resolve(repositoryRoot, manifest.mcpServers), 'utf8')) as {
+      mcp?: { servers?: Record<string, { type?: string; command?: string[] }> };
+    };
+    expect(configuration.mcp?.servers?.codegraph).toMatchObject({
+      type: 'local',
+      command: ['codegraph', 'serve', '--mcp'],
+    });
+  });
+
   test('declares the single-plugin Marketplace catalog', async () => {
     const marketplace = JSON.parse(await readFile(marketplaceManifestPath, 'utf8')) as {
       name: string;

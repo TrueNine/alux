@@ -1,19 +1,24 @@
 import type { AgentPlugin } from '@cline/sdk';
-import { compactAfterToolOutput, rewriteBeforeToolInput, synchronizeWorkspaceInstructions } from './adapter';
+import { codegraphMcpServer, compactAfterToolOutput, rewriteBeforeToolInput, synchronizeWorkspaceInstructions } from './adapter';
 
 const alux: AgentPlugin = {
   name: 'alux',
   manifest: {
-    capabilities: ['hooks', 'skills'],
+    capabilities: ['hooks', 'skills', 'mcp'],
   },
 
-  setup(_api, ctx) {
+  setup(api, ctx) {
     // Mirror the Claude `SessionStart` workflow: derive instruction files once
     // when the plugin session is created. Synchronization is fail-open.
     try {
       synchronizeWorkspaceInstructions(ctx.workspaceInfo?.rootPath);
     } catch {
       // Session setup must not prevent Cline from starting.
+    }
+    try {
+      api.registerMcpServer?.(codegraphMcpServer());
+    } catch {
+      // Hosts without MCP registration support must still load the plugin.
     }
   },
 

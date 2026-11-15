@@ -14,6 +14,7 @@
   <img alt="ZCode" src="https://img.shields.io/badge/ZCode-7C3AED?style=flat-square"/>
   <img alt="Grok Build" src="https://img.shields.io/badge/Grok%20Build-000000?style=flat-square&logo=xai&logoColor=white"/>
   <img alt="CodeBuddy" src="https://img.shields.io/badge/CodeBuddy-2F6FEB?style=flat-square"/>
+  <img alt="Qoder" src="https://img.shields.io/badge/Qoder-6B4FBB?style=flat-square"/>
 </p>
 
 <p align="center">
@@ -37,7 +38,10 @@ assets from `.copilot-plugin/`. Copilot coding agent uses
 `.github/workflows/copilot-setup-steps.yml` to prepare Bun dependencies.
 The Copilot CLI plugin loads its packaged assets from
 `skills/copilot-skills/` and enables the shared session-start, pre-tool, and
-post-tool hooks from `hooks/hooks.copilot.json`.
+post-tool hooks from `hooks/hooks.copilot.json`. Copilot hooks use the camelCase
+protocol with lowercase runtime tool names (`bash`, `powershell`): pre-tool
+rewrites travel through `modifiedArgs`, and post-tool compaction replaces the
+verbose result through `modifiedResult.textResultForLlm`.
 
 GitHub Copilot CLI support is provided through the Alux marketplace entry. The
 plugin manifest is packaged under `.copilot-plugin/`; direct installation from
@@ -161,6 +165,35 @@ Plugin hook commands expand `${CODEBUDDY_PLUGIN_ROOT}` (CodeBuddy also accepts `
 
 </details>
 
+### Qoder (CLI and IDE)
+
+Qoder CLI and Qoder IDE both support plugins. Qoder CLI reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.qoder-plugin/` (Qoder's preferred manifest location) together with its own marketplace catalog at `.qoder-plugin/marketplace.json`; it loads the skills under `skills/qoder-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.qoder.json` over the Claude-compatible hook protocol.
+
+<details>
+
+Install from the Git marketplace:
+
+```bash
+qoder plugins marketplace add TrueNine/alux
+qoder plugins install alux@alux
+```
+
+Or install a checked-out copy directly:
+
+```bash
+qoder plugins install /path/to/alux
+```
+
+Plugin hook commands expand `${QODER_PLUGIN_ROOT}` (Qoder also accepts `${CLAUDE_PLUGIN_ROOT}` as a compatibility fallback). Pre-tool rewrites travel through `hookSpecificOutput.updatedInput`, and post-tool compaction replaces the tool result through `hookSpecificOutput.updatedToolOutput`. Qoder additionally reads `.claude-plugin/plugin.json` as a fallback manifest, but the native `.qoder-plugin/` copy takes precedence; its marketplace lookup prefers `.qoder-plugin/marketplace.json` over `.claude-plugin/marketplace.json`.
+
+For Qoder IDE, open **Settings → Plugins**, choose **Import** under **Custom**, and select this repository (or add it as a local marketplace), then enable the `alux` plugin.
+
+</details>
+
+## MCP servers
+
+Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --mcp` and indexes the current workspace. Platform catalogs live under `mcps/` (`.mcp.claude.json`, `.mcp.codex.json`, `.mcp.opencode.json`, `.mcp.zcode.json`, `.mcp.grok.json`, `.mcp.codebuddy.json`, `.mcp.copilot.json`, and `.mcp.qoder.json`); the Cursor plugin auto-discovers the root `mcp.json`. The Cline plugin declares the `mcp` capability and registers the same server programmatically through `api.registerMcpServer` during setup, staying fail-open on hosts without MCP registration support. Install CodeGraph and ensure `codegraph` is on `PATH` before enabling the plugin.
+
 ## Shared Rules
 
 The `rules/` tree distributes glob-scoped agent rules the same way `skills/` distributes skills: `rules/shared/*.md` is the canonical source (YAML frontmatter with `description` and optional `globs`), and `bun run sync:rules` generates the per-platform trees:
@@ -173,15 +206,16 @@ The `rules/` tree distributes glob-scoped agent rules the same way `skills/` dis
 | `rules/cline-rules/*.md` | Cline | Installed into the project's `.cline/rules/` (git-excluded) | `paths` honored |
 | `rules/copilot-rules/*.instructions.md` | GitHub Copilot | Installed into the project's `.github/instructions/` (git-excluded) | `applyTo` honored |
 | `rules/grok-rules/*.md` | Grok Build | Installed into the project's `.grok/rules/` (git-excluded) | None — frontmatter is stripped and every rule loads unconditionally |
+| `rules/qoder-rules/*.md` | Qoder | Installed into the project's `.qoder/rules/` (git-excluded) | `paths` honored |
 
 Codex, OpenCode, and ZCode have no per-file conditional rules mechanism (Codex scopes through nested `AGENTS.md` files only; OpenCode's config `instructions` array selects files by glob but loads them unconditionally; ZCode reads `AGENTS.md` and skills), so no trees are generated for them.
 
 <details>
 
-Only Cursor carries rules inside its plugin — the Claude Code, CodeBuddy, Grok, Cline, and Copilot plugin manifests have no rules component. From a checked-out alux copy, install the copy-distributed assets into a project; the installer registers every copied file (and the alux clone itself, when it lives inside the project) in the project's `.git/info/exclude`, so alux assets stay local and never enter the project's version control:
+Only Cursor carries rules inside its plugin — the Claude Code, CodeBuddy, Grok, Cline, Copilot, and Qoder plugin manifests have no rules component. From a checked-out alux copy, install the copy-distributed assets into a project; the installer registers every copied file (and the alux clone itself, when it lives inside the project) in the project's `.git/info/exclude`, so alux assets stay local and never enter the project's version control:
 
 ```bash
-# All platforms (claude, cline, codebuddy, copilot, grok; cline also installs .cline/skills)
+# All platforms (claude, cline, codebuddy, copilot, grok, qoder; cline also installs .cline/skills)
 bun alux/scripts/install-project-assets.ts .
 
 # Or platform by platform

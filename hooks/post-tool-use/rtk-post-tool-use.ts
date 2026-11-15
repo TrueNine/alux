@@ -7,9 +7,10 @@ import '../shared/log.ts';
 export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
+const copilotShellTools = new Set(['bash', 'shell', 'powershell', 'Bash']);
 const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy' | 'qoder';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -26,7 +27,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
               ? 'grok'
               : process.argv.includes('--codebuddy')
                 ? 'codebuddy'
-                : undefined;
+                : process.argv.includes('--qoder')
+                  ? 'qoder'
+                  : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
@@ -45,7 +48,7 @@ export function text(value: unknown): string {
 
 function originalOutput(response?: JsonObject): string {
   if (!response) return '';
-  for (const key of ['aggregated_output', 'output', 'text', 'output_for_prompt']) {
+  for (const key of ['aggregated_output', 'output', 'text', 'output_for_prompt', 'textResultForLlm', 'text_result_for_llm']) {
     const result = text(response[key]);
     if (result) return result;
   }
@@ -68,14 +71,14 @@ export function summarize(output: string): string | undefined {
 
 function emitProcessedOutput(value: string): never {
   if (platform === 'copilot') {
-    process.stdout.write(`${JSON.stringify({ additionalContext: value })}\n`);
+    process.stdout.write(`${JSON.stringify({ modifiedResult: { resultType: 'success', textResultForLlm: value } })}\n`);
     process.exit(0);
   }
   if (platform === 'cursor') {
     process.stdout.write(`${JSON.stringify({ additional_context: value })}\n`);
     process.exit(0);
   }
-  if (platform === 'codebuddy') {
+  if (platform === 'codebuddy' || platform === 'qoder') {
     process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', updatedToolOutput: value } })}\n`);
     process.exit(0);
   }
@@ -121,13 +124,15 @@ async function main(): Promise<void> {
   if (
     !platform ||
     !toolName ||
-    (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy'
+    (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy' || platform === 'qoder'
       ? toolName !== 'Bash'
       : platform === 'cursor'
         ? toolName !== 'Shell'
-        : platform === 'grok'
-          ? !grokShellTools.has(toolName)
-          : !shellTools.has(toolName))
+        : platform === 'copilot'
+          ? !copilotShellTools.has(toolName)
+          : platform === 'grok'
+            ? !grokShellTools.has(toolName)
+            : !shellTools.has(toolName))
   )
     return;
   const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);

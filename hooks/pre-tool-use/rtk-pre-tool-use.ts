@@ -7,7 +7,7 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy' | 'qoder';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -24,8 +24,11 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
               ? 'grok'
               : process.argv.includes('--codebuddy')
                 ? 'codebuddy'
-                : undefined;
+                : process.argv.includes('--qoder')
+                  ? 'qoder'
+                  : undefined;
 const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
+const copilotShellTools = new Set(['bash', 'shell', 'powershell', 'Bash']);
 const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
@@ -90,15 +93,17 @@ async function main(): Promise<void> {
     const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
     if (
       !platform ||
-      (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy'
+      (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy' || platform === 'qoder'
         ? toolName !== 'Bash'
         : platform === 'cursor'
           ? toolName !== 'Shell'
           : platform === 'cline'
             ? !clineShellTools.has(toolName)
-            : platform === 'grok'
-              ? !grokShellTools.has(toolName)
-              : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
+            : platform === 'copilot'
+              ? !copilotShellTools.has(toolName)
+              : platform === 'grok'
+                ? !grokShellTools.has(toolName)
+                : !['Bash', 'exec', 'exec_command', 'unified_exec'].includes(toolName))
     )
       return;
     const input = asObject(payload.tool_input) ?? asObject(payload.toolInput) ?? asObject(payload.toolArgs);
