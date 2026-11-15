@@ -7,7 +7,7 @@ import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -22,7 +22,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
             ? 'zcode'
             : process.argv.includes('--grok')
               ? 'grok'
-              : undefined;
+              : process.argv.includes('--codebuddy')
+                ? 'codebuddy'
+                : undefined;
 const clineShellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
@@ -88,7 +90,7 @@ async function main(): Promise<void> {
     const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : typeof payload.toolName === 'string' ? payload.toolName : '';
     if (
       !platform ||
-      (platform === 'claude' || platform === 'zcode'
+      (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy'
         ? toolName !== 'Bash'
         : platform === 'cursor'
           ? toolName !== 'Shell'
@@ -114,6 +116,18 @@ async function main(): Promise<void> {
         `${JSON.stringify({
           permission: 'allow',
           updated_input: { ...input, command: rewritten },
+        })}\n`,
+      );
+      return;
+    }
+    if (platform === 'codebuddy') {
+      process.stdout.write(
+        `${JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'allow',
+            modifiedInput: { ...input, command: rewritten },
+          },
         })}\n`,
       );
       return;

@@ -100,6 +100,11 @@ export function renderClineRule(rule: SharedRule): string {
   return renderClaudeRule(rule);
 }
 
+/** Renders the CodeBuddy rule document (`.md`): CodeBuddy conditions rules on the same `paths` frontmatter as Claude. */
+export function renderCodebuddyRule(rule: SharedRule): string {
+  return renderClaudeRule(rule);
+}
+
 /** Renders the Copilot instruction document (`.instructions.md`): `applyTo` takes one comma-separated glob string. */
 export function renderCopilotRule(rule: SharedRule): string {
   const globs = rule.globs?.length ? rule.globs : ['**'];
@@ -131,6 +136,7 @@ export async function mixSharedRules(rulesRoot: string): Promise<MixSharedRulesR
     'cursor-rules': (rule) => renderCursorRule(rule),
     'claude-rules': (rule) => renderClaudeRule(rule),
     'cline-rules': (rule) => renderClineRule(rule),
+    'codebuddy-rules': (rule) => renderCodebuddyRule(rule),
     'copilot-rules': (rule) => renderCopilotRule(rule),
     'grok-rules': (rule) => renderGrokRule(rule),
   };
@@ -138,6 +144,7 @@ export async function mixSharedRules(rulesRoot: string): Promise<MixSharedRulesR
     'cursor-rules': '.mdc',
     'claude-rules': '.md',
     'cline-rules': '.md',
+    'codebuddy-rules': '.md',
     'copilot-rules': '.instructions.md',
     'grok-rules': '.md',
   };

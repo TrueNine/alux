@@ -71,6 +71,22 @@ test('ZCode PreToolUse reuses the Claude-compatible Bash protocol', () => {
   });
 });
 
+test('CodeBuddy PreToolUse reuses the Claude-compatible Bash protocol', () => {
+  const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.codebuddy.json'), 'utf8'));
+  const group = configuration.hooks.PreToolUse[0];
+
+  expect(group).toEqual({
+    matcher: '^Bash$',
+    hooks: [
+      {
+        type: 'command',
+        command: `bun "\${CODEBUDDY_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --codebuddy`,
+        statusMessage: 'PowerShell UTF-8 and RTK preprocessing',
+      },
+    ],
+  });
+});
+
 test('Grok PreToolUse reuses the Claude-compatible Bash protocol', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.grok.json'), 'utf8'));
   const group = configuration.hooks.PreToolUse[0];
@@ -216,6 +232,38 @@ test.skipIf(process.platform !== 'win32')('ZCode entrypoint rewrites Bash comman
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
       updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+    },
+  });
+});
+
+test('CodeBuddy entrypoint ignores non-Bash tools', () => {
+  const result = spawnSync('bun', [entrypoint, '--codebuddy'], {
+    input: JSON.stringify({
+      tool_name: 'Read',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
+test.skipIf(process.platform !== 'win32')('CodeBuddy entrypoint rewrites Bash commands with modifiedInput', () => {
+  const result = spawnSync('bun', [entrypoint, '--codebuddy'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+      modifiedInput: { command: 'Get-Content -Encoding utf8 README.md' },
     },
   });
 });

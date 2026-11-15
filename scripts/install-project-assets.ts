@@ -4,7 +4,7 @@ import { cp, mkdir, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { appendGitExclude } from '../hooks/shared/git-exclude.ts';
 
-export type InstallPlatform = 'claude' | 'cline' | 'copilot' | 'grok';
+export type InstallPlatform = 'claude' | 'cline' | 'codebuddy' | 'copilot' | 'grok';
 
 export type InstallAsset = { source: string; target: string };
 
@@ -20,6 +20,7 @@ export const PLATFORM_ASSETS: Record<InstallPlatform, InstallAsset[]> = {
     { source: 'rules/cline-rules', target: '.cline/rules' },
     { source: 'skills/cline-skills', target: '.cline/skills' },
   ],
+  codebuddy: [{ source: 'rules/codebuddy-rules', target: '.codebuddy/rules' }],
   copilot: [{ source: 'rules/copilot-rules', target: '.github/instructions' }],
   grok: [{ source: 'rules/grok-rules', target: '.grok/rules' }],
 };
@@ -81,7 +82,7 @@ export async function installProjectAssets(projectDirectory: string, options: { 
 }
 
 function usage(): never {
-  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|copilot|grok>]...');
+  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|codebuddy|copilot|grok>]...');
   process.exit(2);
 }
 

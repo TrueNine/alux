@@ -9,7 +9,7 @@ export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type JsonObject = Record<string, unknown>;
-type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok';
+type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
   ? 'claude'
   : process.argv.includes('--codex')
@@ -24,7 +24,9 @@ const platform: HookPlatform | undefined = process.argv.includes('--claude')
             ? 'zcode'
             : process.argv.includes('--grok')
               ? 'grok'
-              : undefined;
+              : process.argv.includes('--codebuddy')
+                ? 'codebuddy'
+                : undefined;
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
@@ -73,6 +75,10 @@ function emitProcessedOutput(value: string): never {
     process.stdout.write(`${JSON.stringify({ additional_context: value })}\n`);
     process.exit(0);
   }
+  if (platform === 'codebuddy') {
+    process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', updatedToolOutput: value } })}\n`);
+    process.exit(0);
+  }
   process.stderr.write(`${value}\n`);
   process.exit(2);
 }
@@ -115,7 +121,7 @@ async function main(): Promise<void> {
   if (
     !platform ||
     !toolName ||
-    (platform === 'claude' || platform === 'zcode'
+    (platform === 'claude' || platform === 'zcode' || platform === 'codebuddy'
       ? toolName !== 'Bash'
       : platform === 'cursor'
         ? toolName !== 'Shell'

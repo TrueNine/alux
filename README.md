@@ -13,6 +13,7 @@
   <img alt="GitHub Copilot" src="https://img.shields.io/badge/GitHub%20Copilot-000000?style=flat-square&logo=githubcopilot&logoColor=white"/>
   <img alt="ZCode" src="https://img.shields.io/badge/ZCode-7C3AED?style=flat-square"/>
   <img alt="Grok Build" src="https://img.shields.io/badge/Grok%20Build-000000?style=flat-square&logo=xai&logoColor=white"/>
+  <img alt="CodeBuddy" src="https://img.shields.io/badge/CodeBuddy-2F6FEB?style=flat-square"/>
 </p>
 
 <p align="center">
@@ -144,6 +145,22 @@ The `^Bash$` hook matcher reaches Grok's native `run_terminal_command` tool thro
 
 </details>
 
+### CodeBuddy Code
+
+CodeBuddy Code reads the repository guidance from `CODEBUDDY.md` natively. The plugin manifest is packaged under `.codebuddy-plugin/` (CodeBuddy's native manifest location) together with its own marketplace catalog at `.codebuddy-plugin/marketplace.json`; it loads the skills under `skills/codebuddy-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.codebuddy.json` over the Claude-compatible hook protocol.
+
+<details>
+
+install:
+```bash
+/plugin marketplace add TrueNine/alux
+/plugin install alux@alux
+```
+
+Plugin hook commands expand `${CODEBUDDY_PLUGIN_ROOT}` (CodeBuddy also accepts `${CLAUDE_PLUGIN_ROOT}` as a compatibility fallback). Pre-tool rewrites travel through `hookSpecificOutput.modifiedInput`, and post-tool compaction replaces the tool result through `hookSpecificOutput.updatedToolOutput`. CodeBuddy additionally reads `.claude-plugin/plugin.json` as a fallback manifest, but the native `.codebuddy-plugin/` copy takes precedence.
+
+</details>
+
 ## Shared Rules
 
 The `rules/` tree distributes glob-scoped agent rules the same way `skills/` distributes skills: `rules/shared/*.md` is the canonical source (YAML frontmatter with `description` and optional `globs`), and `bun run sync:rules` generates the per-platform trees:
@@ -152,6 +169,7 @@ The `rules/` tree distributes glob-scoped agent rules the same way `skills/` dis
 |------|----------|--------------|--------------|
 | `rules/cursor-rules/*.mdc` | Cursor | Carried by the plugin (`.cursor-plugin/plugin.json` → `rules` field) | `globs` / `alwaysApply` honored |
 | `rules/claude-rules/*.md` | Claude Code | Installed into the project's `.claude/rules/` (git-excluded) | `paths` honored |
+| `rules/codebuddy-rules/*.md` | CodeBuddy Code | Installed into the project's `.codebuddy/rules/` (git-excluded) | `paths` honored |
 | `rules/cline-rules/*.md` | Cline | Installed into the project's `.cline/rules/` (git-excluded) | `paths` honored |
 | `rules/copilot-rules/*.instructions.md` | GitHub Copilot | Installed into the project's `.github/instructions/` (git-excluded) | `applyTo` honored |
 | `rules/grok-rules/*.md` | Grok Build | Installed into the project's `.grok/rules/` (git-excluded) | None — frontmatter is stripped and every rule loads unconditionally |
@@ -160,10 +178,10 @@ Codex, OpenCode, and ZCode have no per-file conditional rules mechanism (Codex s
 
 <details>
 
-Only Cursor carries rules inside its plugin — the Claude Code, Grok, Cline, and Copilot plugin manifests have no rules component. From a checked-out alux copy, install the copy-distributed assets into a project; the installer registers every copied file (and the alux clone itself, when it lives inside the project) in the project's `.git/info/exclude`, so alux assets stay local and never enter the project's version control:
+Only Cursor carries rules inside its plugin — the Claude Code, CodeBuddy, Grok, Cline, and Copilot plugin manifests have no rules component. From a checked-out alux copy, install the copy-distributed assets into a project; the installer registers every copied file (and the alux clone itself, when it lives inside the project) in the project's `.git/info/exclude`, so alux assets stay local and never enter the project's version control:
 
 ```bash
-# All platforms (claude, cline, copilot, grok; cline also installs .cline/skills)
+# All platforms (claude, cline, codebuddy, copilot, grok; cline also installs .cline/skills)
 bun alux/scripts/install-project-assets.ts .
 
 # Or platform by platform

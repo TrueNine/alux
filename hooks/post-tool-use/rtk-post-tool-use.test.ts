@@ -80,6 +80,22 @@ test('ZCode PostToolUse reuses the Claude-compatible Bash protocol', () => {
   });
 });
 
+test('CodeBuddy PostToolUse reuses the Claude-compatible Bash protocol', () => {
+  const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.codebuddy.json'), 'utf8'));
+  const group = configuration.hooks.PostToolUse[0];
+
+  expect(group).toEqual({
+    matcher: '^Bash$',
+    hooks: [
+      {
+        type: 'command',
+        command: `bun "\${CODEBUDDY_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --codebuddy`,
+        statusMessage: 'RTK output compaction',
+      },
+    ],
+  });
+});
+
 test('Grok PostToolUse reuses the Claude-compatible Bash protocol', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.grok.json'), 'utf8'));
   const group = configuration.hooks.PostToolUse[0];
@@ -173,6 +189,27 @@ test('ZCode entrypoint summarizes verbose Bash output', () => {
   expect(replacement).toContain('Output summary (100 lines)');
   expect(replacement).toContain('... omitted verbose output ...');
   expect(replacement).not.toContain('line 50');
+});
+
+test('CodeBuddy entrypoint replaces verbose Bash output', () => {
+  const result = spawnSync('bun', [entrypoint, '--codebuddy'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'bun test' },
+      tool_response: {
+        output: verboseOutput(),
+        exit_code: 0,
+      },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  const output = JSON.parse(new TextDecoder().decode(result.stdout));
+  expect(output.hookSpecificOutput.hookEventName).toBe('PostToolUse');
+  expect(output.hookSpecificOutput.updatedToolOutput).toContain('Output summary (100 lines)');
+  expect(output.hookSpecificOutput.updatedToolOutput).toContain('... omitted verbose output ...');
+  expect(output.hookSpecificOutput.updatedToolOutput).not.toContain('line 50');
 });
 
 test('Grok entrypoint summarizes verbose run_terminal_command output', () => {

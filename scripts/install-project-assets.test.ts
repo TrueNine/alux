@@ -24,6 +24,7 @@ async function createAluxRoot(): Promise<string> {
   temporaryDirectories.push(root);
   await createFixtureTree(root, 'rules/claude-rules', ['claude-rule.md']);
   await createFixtureTree(root, 'rules/cline-rules', ['cline-rule.md']);
+  await createFixtureTree(root, 'rules/codebuddy-rules', ['codebuddy-rule.md']);
   await createFixtureTree(root, 'rules/copilot-rules', ['copilot-rule.instructions.md']);
   await createFixtureTree(root, 'rules/grok-rules', ['grok-rule.md']);
   await createFixtureTree(root, 'skills/cline-skills/example-skill', ['SKILL.md', 'scripts/run.ts']);
@@ -56,6 +57,7 @@ describe('installProjectAssets', () => {
       '.cline/rules/cline-rule.md',
       '.cline/skills/example-skill/scripts/run.ts',
       '.cline/skills/example-skill/SKILL.md',
+      '.codebuddy/rules/codebuddy-rule.md',
       '.github/instructions/copilot-rule.instructions.md',
       '.grok/rules/grok-rule.md',
     ]);
@@ -179,6 +181,6 @@ describe('installProjectAssets', () => {
   });
 
   test('covers every copy-distributed platform target', () => {
-    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'copilot', 'grok']);
+    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'codebuddy', 'copilot', 'grok']);
   });
 });

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
-import { mixSharedRules, parseSharedRule, renderClaudeRule, renderClineRule, renderCopilotRule, renderCursorRule, renderGrokRule } from './mixing-shared-rules-to-native-rules.ts';
+import { mixSharedRules, parseSharedRule, renderClaudeRule, renderClineRule, renderCodebuddyRule, renderCopilotRule, renderCursorRule, renderGrokRule } from './mixing-shared-rules-to-native-rules.ts';
 
 const temporaryDirectories: string[] = [];
 
@@ -33,7 +33,7 @@ async function createRulesRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'alux-rules-'));
   temporaryDirectories.push(root);
   await mkdir(join(root, 'shared'), { recursive: true });
-  for (const target of ['cursor-rules', 'claude-rules', 'cline-rules', 'copilot-rules', 'grok-rules']) {
+  for (const target of ['cursor-rules', 'claude-rules', 'cline-rules', 'codebuddy-rules', 'copilot-rules', 'grok-rules']) {
     await mkdir(join(root, target), { recursive: true });
   }
   await writeFile(join(root, 'shared', 'scoped-rule.md'), globRule);
@@ -86,6 +86,11 @@ describe('renderers', () => {
     expect(renderClineRule(unconditional)).toBe(renderClaudeRule(unconditional));
   });
 
+  test('codebuddy reuses the Claude paths frontmatter', () => {
+    expect(renderCodebuddyRule(rule)).toBe(renderClaudeRule(rule));
+    expect(renderCodebuddyRule(unconditional)).toBe(renderClaudeRule(unconditional));
+  });
+
   test('copilot renders applyTo as a comma-separated quoted string', () => {
     expect(renderCopilotRule(rule)).toBe(`---\ndescription: Scoped rule\napplyTo: '**/*.ts, **/*.tsx'\n---\n\nScoped body.\n`);
     expect(renderCopilotRule(unconditional)).toBe(`---\ndescription: Unconditional rule\napplyTo: '**'\n---\n\nUnconditional body.\n`);
@@ -106,13 +111,15 @@ describe('mixSharedRules', () => {
 
     expect(result).toEqual({
       copiedRules: ['scoped-rule', 'unconditional-rule'],
-      targetDirectories: ['claude-rules', 'cline-rules', 'copilot-rules', 'cursor-rules', 'grok-rules'],
+      targetDirectories: ['claude-rules', 'cline-rules', 'codebuddy-rules', 'copilot-rules', 'cursor-rules', 'grok-rules'],
     });
     expect(await readFile(join(root, 'cursor-rules', 'scoped-rule.mdc'), 'utf8')).toContain('globs:');
     expect(await readFile(join(root, 'cursor-rules', 'unconditional-rule.mdc'), 'utf8')).toContain('alwaysApply: true');
     expect(await readFile(join(root, 'claude-rules', 'scoped-rule.md'), 'utf8')).toContain('paths:');
     expect(await readFile(join(root, 'claude-rules', 'unconditional-rule.md'), 'utf8')).not.toContain('paths:');
     expect(await readFile(join(root, 'cline-rules', 'scoped-rule.md'), 'utf8')).toContain('paths:');
+    expect(await readFile(join(root, 'codebuddy-rules', 'scoped-rule.md'), 'utf8')).toContain('paths:');
+    expect(await readFile(join(root, 'codebuddy-rules', 'unconditional-rule.md'), 'utf8')).not.toContain('paths:');
     expect(await readFile(join(root, 'copilot-rules', 'scoped-rule.instructions.md'), 'utf8')).toContain(`applyTo: '**/*.ts, **/*.tsx'`);
     expect(await readFile(join(root, 'copilot-rules', 'unconditional-rule.instructions.md'), 'utf8')).toContain(`applyTo: '**'`);
     expect(await readFile(join(root, 'grok-rules', 'scoped-rule.md'), 'utf8')).toBe('Scoped body.\n');
