@@ -71,6 +71,8 @@ codex plugin marketplace upgrade devopsflow
 codex plugin add devopsflow@devopsflow
 ```
 
+The plugin exposes the skills under `skills/codex-skills` and loads `hooks/hooks.codex.json`. Its Codex hooks follow the Claude-compatible protocol: `SessionStart` synchronizes derived instruction files, `PreToolUse` applies the PowerShell UTF-8 rewrite and rewrites supported shell commands through RTK before execution (Codex matches shell calls as `Bash` and accepts `hookSpecificOutput.updatedInput` command rewrites since the hooks beta in Codex CLI 0.117.0), and `PostToolUse` compacts verbose output through exit-code-2 feedback, which Codex applies by replacing the original tool result.
+
 </details>
 
 ### Cursor
@@ -108,7 +110,7 @@ install:
 cline plugin install https://github.com/TrueNine/alux.git
 ```
 
-The manifest lives in the `cline.plugins` field of `package.json` and points at `.cline-plugin/index.ts`, which exports a Cline SDK `AgentPlugin`. Its lifecycle hooks mirror the Claude workflow: `setup` synchronizes derived instruction files, `beforeTool` applies the PowerShell UTF-8 rewrite to shell tool calls (`execute_command` and friends), and `afterTool` compacts verbose shell output with the shared RTK summarizer.
+The manifest lives in the `cline.plugins` field of `package.json` and points at `.cline-plugin/index.ts`, which exports a Cline SDK `AgentPlugin`. Its lifecycle hooks mirror the Claude workflow: `setup` synchronizes derived instruction files, `beforeTool` applies the PowerShell UTF-8 rewrite and rewrites supported shell commands through RTK before execution (`execute_command` and friends), and `afterTool` compacts verbose shell output with the shared RTK summarizer.
 
 Cline only auto-discovers bundled plugin skills from a single-level `<package-root>/skills/<skill-name>/SKILL.md` layout, while Alux keeps one shared `skills/` tree for all agent platforms. To use the Alux skills with Cline, install them into your project's `.cline/skills/` directory; the installer keeps them local-only by registering every file in `.git/info/exclude`:
 
@@ -193,6 +195,19 @@ For Qoder IDE, open **Settings → Plugins**, choose **Import** under **Custom**
 ## MCP servers
 
 Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --mcp` and indexes the current workspace. Platform catalogs live under `mcps/` (`.mcp.claude.json`, `.mcp.codex.json`, `.mcp.opencode.json`, `.mcp.zcode.json`, `.mcp.grok.json`, `.mcp.codebuddy.json`, `.mcp.copilot.json`, and `.mcp.qoder.json`); the Cursor plugin auto-discovers the root `mcp.json`. The Cline plugin declares the `mcp` capability and registers the same server programmatically through `api.registerMcpServer` during setup, staying fail-open on hosts without MCP registration support. Install CodeGraph and ensure `codegraph` is on `PATH` before enabling the plugin.
+
+## RTK hooks
+
+Every platform shares one RTK pipeline in [`hooks/`](hooks/): `PreToolUse` first applies the Windows PowerShell `Get-Content` UTF-8 rewrite, then consults `rtk rewrite` for every single (non-compound) command — rtk itself decides what it can optimize, so simple commands outside the read-only whitelist (for example `bun run dev`) are rewritten too. Commands with shell composition (`&&`, `||`, `;`, redirects, `$(`, backticks) skip the rewrite and pass through untouched. `PostToolUse` compacts verbose output (kept head/tail lines around an omission marker) and replays safe read-only commands through `rtk proxy` for the compact native output; the strict read-only whitelist (`isSafeRtkCommand`) guards only this replay, because replay re-executes the command.
+
+Compaction thresholds are tunable through environment variables (invalid or non-positive values fall back to the defaults):
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `ALUX_RTK_COMPACT_MIN_CHARS` | `500` | Only outputs at least this many characters are compacted |
+| `ALUX_RTK_COMPACT_HEAD_LINES` | `35` | Head lines kept before the omission marker |
+| `ALUX_RTK_COMPACT_TAIL_LINES` | `35` | Tail lines kept after the omission marker |
+| `ALUX_RTK_COMPACT_LINE_WIDTH` | `320` | Maximum characters per retained line |
 
 ## Shared Rules
 

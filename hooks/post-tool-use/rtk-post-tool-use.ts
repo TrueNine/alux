@@ -62,11 +62,36 @@ function commandFrom(input?: JsonObject): string | undefined {
   }
 }
 
-export function summarize(output: string): string | undefined {
-  if (output.length < 500) return;
+export type CompactOptions = {
+  minChars: number;
+  headLines: number;
+  tailLines: number;
+  lineWidth: number;
+};
+
+const compactDefaults: CompactOptions = { minChars: 500, headLines: 35, tailLines: 35, lineWidth: 320 };
+
+function envNumber(name: string, fallback: number): number {
+  const parsed = Number.parseInt(process.env[name] ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/** Compaction thresholds, overridable through `ALUX_RTK_COMPACT_*` environment variables. */
+export function compactOptionsFromEnv(): CompactOptions {
+  return {
+    minChars: envNumber('ALUX_RTK_COMPACT_MIN_CHARS', compactDefaults.minChars),
+    headLines: envNumber('ALUX_RTK_COMPACT_HEAD_LINES', compactDefaults.headLines),
+    tailLines: envNumber('ALUX_RTK_COMPACT_TAIL_LINES', compactDefaults.tailLines),
+    lineWidth: envNumber('ALUX_RTK_COMPACT_LINE_WIDTH', compactDefaults.lineWidth),
+  };
+}
+
+export function summarize(output: string, options: Partial<CompactOptions> = {}): string | undefined {
+  const { minChars, headLines, tailLines, lineWidth } = { ...compactOptionsFromEnv(), ...options };
+  if (output.length < minChars) return;
   const lines = output.split('\n').filter(Boolean);
-  const retained = [...lines.slice(0, 35), '... omitted verbose output ...', ...lines.slice(-35)];
-  return `Output summary (${lines.length} lines)\n${retained.map((line) => line.slice(0, 320)).join('\n')}`;
+  const retained = [...lines.slice(0, headLines), '... omitted verbose output ...', ...lines.slice(-tailLines)];
+  return `Output summary (${lines.length} lines)\n${retained.map((line) => line.slice(0, lineWidth)).join('\n')}`;
 }
 
 function emitProcessedOutput(value: string): never {

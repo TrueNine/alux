@@ -316,17 +316,26 @@ Feature: RTK 钩子行为
       Then the preprocessed command should be "Get-Content -Encoding utf8 README.md"
       And the marker should have seen "Get-Content -Encoding utf8 README.md"
 
-    Scenario: Cursor 安全命令走 RTK 改写
-      Given a Cursor preprocess input "git status"
+    Scenario: 安全命令经由 RTK 改写
+      Given an RTK preprocess input "git status"
       And an RTK rewrite stub with exit code 3 and output "rtk git status"
-      When I preprocess the Cursor command
+      When I preprocess the command through RTK
       Then the preprocessed command should be "rtk git status"
+      And the RTK rewrite should be consulted
       And the marker should have seen "rtk git status"
 
-    Scenario: Cursor 不安全命令不走 RTK 改写
-      Given a Cursor preprocess input "bun run dev"
-      When I preprocess the Cursor command
-      Then the Cursor command should fall back to the PowerShell rewrite result
+    Scenario: 危险拼接不走 RTK 改写
+      Given an RTK preprocess input "rm -rf node_modules && echo done"
+      When I preprocess the command through RTK
+      Then the RTK rewrite should be skipped
+      And the command should fall back to the PowerShell rewrite result
+      And the marker should have seen "rm -rf node_modules && echo done"
+
+    Scenario: 只读白名单外的简单命令也咨询 RTK 改写
+      Given an RTK preprocess input "bun run dev"
+      When I preprocess the command through RTK
+      Then the RTK rewrite should be consulted
+      And the command should fall back to the PowerShell rewrite result
       And the marker should have seen "bun run dev"
 
     Scenario Outline: 平台与工具名不匹配时入口静默放过
@@ -377,6 +386,25 @@ Feature: RTK 钩子行为
       Given a verbose tool output with one 1000-character line repeated 100 times
       When I summarize the tool output
       Then the summary lines should be at most 320 characters
+
+    Scenario: 压缩参数可经环境变量调整
+      Given a compact environment override "ALUX_RTK_COMPACT_MIN_CHARS=50"
+      And a compact environment override "ALUX_RTK_COMPACT_HEAD_LINES=2"
+      And a compact environment override "ALUX_RTK_COMPACT_TAIL_LINES=3"
+      And a compact environment override "ALUX_RTK_COMPACT_LINE_WIDTH=40"
+      And a verbose tool output with 10 lines
+      When I summarize the tool output
+      Then the summary should contain "Output summary (10 lines)"
+      And the summary should contain "... omitted verbose output ..."
+      And the summary should not contain "line 5 "
+
+    Scenario: 非法环境变量回落默认压缩参数
+      Given a compact environment override "ALUX_RTK_COMPACT_MIN_CHARS=abc"
+      And a compact environment override "ALUX_RTK_COMPACT_HEAD_LINES=0"
+      And a verbose tool output with 100 lines
+      When I summarize the tool output
+      Then the summary should contain "Output summary (100 lines)"
+      And the summary should not contain "line 50"
 
     Scenario Outline: 非 Bash 工具输出永不摘要
       Given a PostToolUse payload for tool "<tool>" with 100 lines of output

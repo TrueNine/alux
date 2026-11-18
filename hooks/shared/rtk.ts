@@ -63,6 +63,17 @@ export function isSafeRtkCommand(command: string): boolean {
   return replaySafeCommands.some((pattern) => pattern.test(value));
 }
 
+/**
+ * PreToolUse gate for consulting `rtk rewrite`: every single (non-compound)
+ * command may be handed to rtk, which decides on its own what it can optimize.
+ * The strict read-only whitelist (`isSafeRtkCommand`) only guards the
+ * PostToolUse replay, which re-executes commands through `rtk proxy`.
+ */
+export function isRewritableCommand(command: string): boolean {
+  const value = normalizeRtkCommand(command);
+  return Boolean(value) && !unsafeTokens.some((token) => value.includes(token));
+}
+
 export function resolveOptimizedCommand(command: string, cwd?: string, spawn: SpawnSync = spawnSync): string | undefined {
   try {
     const result = spawn({

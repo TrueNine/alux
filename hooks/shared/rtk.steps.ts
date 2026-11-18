@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Before, Given, Then, When } from '@cucumber/cucumber';
 import { summarize } from '../post-tool-use/rtk-post-tool-use.ts';
 import { rewritePowerShellGetContent } from '../pre-tool-use/powershell-get-content-utf8.ts';
-import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from '../pre-tool-use/rtk-pre-tool-use.ts';
+import { preprocessCommand, refreshRtkWarningMarker } from '../pre-tool-use/rtk-pre-tool-use.ts';
 import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from './rtk.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -39,7 +39,7 @@ interface ScenarioState {
   powerShellOffsets?: number[];
   powerShellRewritten?: string;
   markerSeen?: string[];
-  cursorOptimizeCalls?: number;
+  optimizeCalls?: number;
   hookTool?: string;
   hookCommand?: string;
   hookLines?: number;
@@ -51,6 +51,7 @@ interface ScenarioState {
   inspectedMatcher?: string;
   inspectedCommand?: string;
   toolOutput?: string;
+  compactEnv?: Record<string, string>;
   summary?: string;
   entrySource?: string;
 }
@@ -248,6 +249,7 @@ When('I preprocess the command', () => {
   if (state.command === undefined) throw new Error('no command was set');
   state.normalized = preprocessCommand(
     state.command,
+    undefined,
     'win32',
     createTempDir(),
     (command) => rewritePowerShellGetContent(command, 'win32', () => [11]),
@@ -255,6 +257,8 @@ When('I preprocess the command', () => {
       state.markerSeen = [...(state.markerSeen ?? []), command];
       return true;
     },
+    undefined,
+    () => false,
   );
 });
 
@@ -267,16 +271,16 @@ Then('the preprocessed command should be {string}', (expected: string) => {
   if (state.normalized !== expected) throw new Error(`expected preprocessed ${JSON.stringify(expected)}, got ${JSON.stringify(state.normalized)}`);
 });
 
-Given('a Cursor preprocess input {string}', (command: string) => {
+Given('an RTK preprocess input {string}', (command: string) => {
   state.command = command;
 });
 
-When('I preprocess the Cursor command', () => {
+When('I preprocess the command through RTK', () => {
   if (state.command === undefined) throw new Error('no command was set');
   const stubOutput = state.rewriteOutput;
-  state.cursorOptimizeCalls = 0;
+  state.optimizeCalls = 0;
   const calls = state;
-  const rewritten = preprocessCursorCommand(
+  state.normalized = preprocessCommand(
     state.command,
     undefined,
     'linux',
@@ -287,16 +291,22 @@ When('I preprocess the Cursor command', () => {
       return true;
     },
     () => {
-      calls.cursorOptimizeCalls = (calls.cursorOptimizeCalls ?? 0) + 1;
+      calls.optimizeCalls = (calls.optimizeCalls ?? 0) + 1;
       return stubOutput || undefined;
     },
   );
-  state.normalized = rewritten;
 });
 
-Then('the Cursor command should fall back to the PowerShell rewrite result', () => {
-  if (state.normalized !== undefined) throw new Error(`expected no Cursor rewrite, got ${JSON.stringify(state.normalized)}`);
-  if (state.cursorOptimizeCalls !== 0) throw new Error('expected RTK optimization to be skipped for unsafe commands');
+Then('the command should fall back to the PowerShell rewrite result', () => {
+  if (state.normalized !== undefined) throw new Error(`expected no RTK rewrite, got ${JSON.stringify(state.normalized)}`);
+});
+
+Then('the RTK rewrite should be consulted', () => {
+  if (state.optimizeCalls !== 1) throw new Error(`expected the RTK rewrite to be consulted once, got ${state.optimizeCalls}`);
+});
+
+Then('the RTK rewrite should be skipped', () => {
+  if (state.optimizeCalls !== 0) throw new Error(`expected the RTK rewrite to be skipped, got ${state.optimizeCalls}`);
 });
 
 // 钩子入口调用
@@ -407,9 +417,30 @@ Given('a verbose tool output with one 1000-character line repeated {int} times',
   state.toolOutput = Array.from({ length: times }, () => 'z'.repeat(1000)).join('\n');
 });
 
+Given('a compact environment override {string}', (override: string) => {
+  const separator = override.indexOf('=');
+  if (separator <= 0) throw new Error(`expected a NAME=VALUE override, got ${JSON.stringify(override)}`);
+  const name = override.slice(0, separator);
+  const value = override.slice(separator + 1);
+  state.compactEnv = { ...(state.compactEnv ?? {}), [name]: value };
+});
+
 When('I summarize the tool output', () => {
   if (state.toolOutput === undefined) throw new Error('no tool output was set');
-  state.summary = summarize(state.toolOutput);
+  const overrides = state.compactEnv ?? {};
+  const previous: Record<string, string | undefined> = {};
+  for (const [name, value] of Object.entries(overrides)) {
+    previous[name] = process.env[name];
+    process.env[name] = value;
+  }
+  try {
+    state.summary = summarize(state.toolOutput);
+  } finally {
+    for (const [name, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
 });
 
 Then('there should be no summary', () => {

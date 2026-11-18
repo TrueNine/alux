@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
-import { proxyInvocation, resolveOptimizedCommand } from './rtk-post-tool-use';
+import { proxyInvocation, resolveOptimizedCommand, summarize } from './rtk-post-tool-use';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -341,6 +341,44 @@ test('TypeScript entrypoint cites the RTK repository and hook documentation', ()
 
   expect(source).toContain('// GitHub: https://github.com/rtk-ai/rtk');
   expect(source).toContain('// Documentation: https://github.com/rtk-ai/rtk/blob/develop/hooks/README.md');
+});
+
+test('summarize honours ALUX_RTK_COMPACT_* environment overrides', () => {
+  const output = Array.from({ length: 10 }, (_, index) => `line ${index} ${'y'.repeat(40)}`).join('\n');
+  process.env.ALUX_RTK_COMPACT_MIN_CHARS = '50';
+  process.env.ALUX_RTK_COMPACT_HEAD_LINES = '2';
+  process.env.ALUX_RTK_COMPACT_TAIL_LINES = '3';
+  process.env.ALUX_RTK_COMPACT_LINE_WIDTH = '40';
+  try {
+    const summary = summarize(output);
+
+    expect(summary).toContain('Output summary (10 lines)');
+    expect(summary).toContain('... omitted verbose output ...');
+    expect(summary).not.toContain('line 5 ');
+    expect(summary?.split('\n')[1]?.length).toBeLessThanOrEqual(40);
+    expect(summarize(output, { minChars: 10_000 })).toBeUndefined();
+  } finally {
+    delete process.env.ALUX_RTK_COMPACT_MIN_CHARS;
+    delete process.env.ALUX_RTK_COMPACT_HEAD_LINES;
+    delete process.env.ALUX_RTK_COMPACT_TAIL_LINES;
+    delete process.env.ALUX_RTK_COMPACT_LINE_WIDTH;
+  }
+});
+
+test('summarize falls back to defaults on invalid environment overrides', () => {
+  process.env.ALUX_RTK_COMPACT_MIN_CHARS = 'abc';
+  process.env.ALUX_RTK_COMPACT_HEAD_LINES = '0';
+  try {
+    const output = Array.from({ length: 100 }, (_, index) => `line ${index}`).join('\n');
+    const summary = summarize(output);
+
+    expect(summary).toContain('Output summary (100 lines)');
+    expect(summary).not.toContain('line 50');
+    expect(summarize('short')).toBeUndefined();
+  } finally {
+    delete process.env.ALUX_RTK_COMPACT_MIN_CHARS;
+    delete process.env.ALUX_RTK_COMPACT_HEAD_LINES;
+  }
 });
 
 test('optimization decisions come from rtk rewrite', () => {

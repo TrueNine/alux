@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { isSafeRtkCommand, normalizeRtkCommand, resolveOptimizedCommand } from './rtk';
+import { isRewritableCommand, isSafeRtkCommand, normalizeRtkCommand, resolveOptimizedCommand } from './rtk';
 
 function rtkAvailable(): boolean {
   try {
@@ -37,6 +37,18 @@ test('rejects Deno and Bun commands that RTK does not filter', () => {
 
 test('Bun test runs route to the RTK failure-only summary', () => {
   expect(isSafeRtkCommand('bun test')).toBe(true);
+});
+
+test('rewritable gate passes every single command to rtk, including commands outside the replay whitelist', () => {
+  for (const command of ['git status', 'bun run dev', 'node build.js', 'kubectl get pods', 'bun test || true', 'gh pr checks 42']) {
+    expect(isRewritableCommand(command)).toBe(true);
+  }
+});
+
+test('rewritable gate blocks empty, compound, redirected, and substituted commands', () => {
+  for (const command of ['', '   ', 'rm -rf node_modules && echo done', 'a || true b', 'ls > out.txt', 'tr < in.txt', 'echo $(uname)', 'cat file `pwd`', 'a; b']) {
+    expect(isRewritableCommand(command)).toBe(false);
+  }
 });
 
 test('normalizeRtkCommand strips a trailing `|| true` pipe', () => {

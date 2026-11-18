@@ -2,7 +2,7 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isSafeRtkCommand, resolveOptimizedCommand } from '../shared/rtk.ts';
+import { isRewritableCommand, resolveOptimizedCommand } from '../shared/rtk.ts';
 import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
@@ -33,6 +33,7 @@ const grokShellTools = new Set(['Bash', 'run_terminal_command']);
 type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
 type MarkerRefresher = (command: string, platform?: NodeJS.Platform, localAppData?: string) => boolean;
 type CommandOptimizer = (command: string, cwd?: string) => string | undefined;
+type CommandRewriteGate = (command: string) => boolean;
 
 function asObject(value: unknown): JsonObject | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : undefined;
@@ -60,28 +61,17 @@ export function refreshRtkWarningMarker(command: string, platform: NodeJS.Platfo
 
 export function preprocessCommand(
   command: string,
-  platform: NodeJS.Platform = process.platform,
-  localAppData = process.env.LOCALAPPDATA,
-  rewrite: CommandRewriter = rewritePowerShellGetContent,
-  refreshMarker: MarkerRefresher = refreshRtkWarningMarker,
-): string | undefined {
-  const rewritten = rewrite(command, platform);
-  refreshMarker(rewritten ?? command, platform, localAppData);
-  return rewritten;
-}
-
-export function preprocessCursorCommand(
-  command: string,
   cwd?: string,
   platform: NodeJS.Platform = process.platform,
   localAppData = process.env.LOCALAPPDATA,
   rewrite: CommandRewriter = rewritePowerShellGetContent,
   refreshMarker: MarkerRefresher = refreshRtkWarningMarker,
   optimize: CommandOptimizer = resolveOptimizedCommand,
+  rewritable: CommandRewriteGate = isRewritableCommand,
 ): string | undefined {
   const rewritten = rewrite(command, platform);
   const candidate = rewritten ?? command;
-  const optimized = isSafeRtkCommand(candidate) ? optimize(candidate, cwd) : undefined;
+  const optimized = rewritable(candidate) ? optimize(candidate, cwd) : undefined;
   const processed = optimized ?? rewritten;
   refreshMarker(processed ?? candidate, platform, localAppData);
   return processed;
@@ -110,7 +100,7 @@ async function main(): Promise<void> {
     const command = commandFrom(input);
     if (!command) return;
     const cwd = typeof input?.working_directory === 'string' ? input.working_directory : typeof input?.workdir === 'string' ? input.workdir : typeof payload.cwd === 'string' ? payload.cwd : undefined;
-    const rewritten = platform === 'cursor' ? preprocessCursorCommand(command, cwd) : preprocessCommand(command);
+    const rewritten = preprocessCommand(command, cwd);
     if (!rewritten) return;
     if (platform === 'copilot') {
       process.stdout.write(`${JSON.stringify({ permissionDecision: 'allow', modifiedArgs: { ...input, command: rewritten } })}\n`);

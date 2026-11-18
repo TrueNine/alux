@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- 扩大 RTK 改写面:新增 `isRewritableCommand` 双门模型,PreToolUse 对一切非危险拼接(无 `&&`/`||`/`;`/重定向/`$(`/反引号)的单一命令都会咨询 `rtk rewrite`,由 rtk 自行决定能否优化——只读白名单外的简单命令(如 `bun run dev`)现在也进入改写;严格只读白名单 `isSafeRtkCommand` 仅保留给 PostToolUse 的 `rtk proxy` 回放(回放会二次执行命令,必须保证无副作用)。
+- RTK 压缩参数可调:PostToolUse 摘要新增 `ALUX_RTK_COMPACT_MIN_CHARS`(默认 500)、`ALUX_RTK_COMPACT_HEAD_LINES`(35)、`ALUX_RTK_COMPACT_TAIL_LINES`(35)、`ALUX_RTK_COMPACT_LINE_WIDTH`(320)四个环境变量,非法或非正值回落默认;`summarize` 支持显式 `Partial<CompactOptions>` 注入,README 新增 "RTK hooks" 章节与变量表。
+- RTK 预处理扩展到全部平台:`preprocessCommand` 统一为「PowerShell UTF-8 纠偏 → `rtk rewrite` 改写 → 警告标记刷新」管线,此前仅 Cursor 走 `preprocessCursorCommand` 接入的 RTK 改写现在覆盖 Claude、Codex、ZCode、Copilot、Grok、CodeBuddy、Qoder 八个钩子入口与 Cline/OpenCode 适配器(含各平台 `cwd` 透传)。
+- Codex RTK 改写落地:经官方 hooks 文档核实,Codex(shell 匹配名为 `Bash`,hooks 自 CLI 0.117.0 进入 beta)的 PreToolUse 接受 `hookSpecificOutput.updatedInput` 改写命令,PostToolUse 将 exit 2 + stderr 视为替换工具结果——现有输出协议无需变更,Codex 此前缺失的仅是改写逻辑本身;补充 Codex 入口契约测试。
+- 通用化 BDD 规格与单测:`rtk.feature` 的 Cursor 专属场景改为全平台语义("安全命令经由 RTK 改写"/"不安全命令不走 RTK 改写"),`rtk-pre-tool-use.test.ts` 新增全平台 RTK 改写与不安全命令跳过改写的单测。
+
 ## 0.0.22 - 2026-11-16
 
 - 全部平台 MCP 配置接入 CodeGraph：各插件清单的 `mcps/.mcp.*.json` 统一声明 `codegraph serve --mcp`(OpenCode 使用原生 `mcp.servers` 格式,Copilot 使用 `type: local`),Cursor 通过根目录 `mcp.json` 自动发现,并补充跨平台 MCP 契约测试。

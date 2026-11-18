@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
-import { preprocessCommand, preprocessCursorCommand, refreshRtkWarningMarker } from './rtk-pre-tool-use';
+import { preprocessCommand, refreshRtkWarningMarker } from './rtk-pre-tool-use';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +24,38 @@ test('PreToolUse invokes the Bun TypeScript entrypoint', () => {
         statusMessage: 'PowerShell UTF-8 and RTK preprocessing',
       },
     ],
+  });
+});
+
+test('Codex entrypoint ignores non-shell tools', () => {
+  const result = spawnSync('bun', [entrypoint, '--codex'], {
+    input: JSON.stringify({
+      tool_name: 'Read',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
+test.skipIf(process.platform !== 'win32')('Codex entrypoint rewrites Bash commands over the Claude-compatible protocol', { timeout: 30000 }, () => {
+  const result = spawnSync('bun', [entrypoint, '--codex'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'Get-Content README.md' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+    },
   });
 });
 
@@ -155,6 +187,7 @@ test('rewrites PowerShell Get-Content before RTK preprocessing', () => {
   const calls: string[] = [];
   const rewritten = preprocessCommand(
     'Get-Content README.md',
+    undefined,
     'win32',
     'C:\\local-app-data',
     (command) => {
@@ -165,15 +198,17 @@ test('rewrites PowerShell Get-Content before RTK preprocessing', () => {
       calls.push(`rtk:${command}`);
       return false;
     },
+    undefined,
+    () => false,
   );
 
   expect(rewritten).toBe('Get-Content -Encoding utf8 README.md');
   expect(calls).toEqual(['utf8:Get-Content README.md', 'rtk:Get-Content -Encoding utf8 README.md']);
 });
 
-test('Cursor rewrites safe commands through RTK before execution', () => {
+test('rewrites safe commands through RTK before execution on every platform', () => {
   const calls: string[] = [];
-  const rewritten = preprocessCursorCommand(
+  const rewritten = preprocessCommand(
     'git status',
     'C:\\workspace',
     'win32',
@@ -194,6 +229,56 @@ test('Cursor rewrites safe commands through RTK before execution', () => {
 
   expect(rewritten).toBe('rtk git status');
   expect(calls).toEqual(['utf8:git status', 'rtk:git status:C:\\workspace', 'marker:rtk git status']);
+});
+
+test('skips the RTK rewrite for compound commands and keeps the PowerShell rewrite result', () => {
+  const calls: string[] = [];
+  const rewritten = preprocessCommand(
+    'rm -rf node_modules && echo done',
+    'C:\\workspace',
+    'win32',
+    'C:\\local-app-data',
+    (command) => {
+      calls.push(`utf8:${command}`);
+      return undefined;
+    },
+    (command) => {
+      calls.push(`marker:${command}`);
+      return true;
+    },
+    (command) => {
+      calls.push(`rtk:${command}`);
+      return 'rtk rm -rf node_modules && echo done';
+    },
+  );
+
+  expect(rewritten).toBeUndefined();
+  expect(calls).toEqual(['utf8:rm -rf node_modules && echo done', 'marker:rm -rf node_modules && echo done']);
+});
+
+test('consults the RTK rewrite for simple commands outside the replay whitelist', () => {
+  const calls: string[] = [];
+  const rewritten = preprocessCommand(
+    'bun run dev',
+    undefined,
+    'win32',
+    'C:\\local-app-data',
+    (command) => {
+      calls.push(`utf8:${command}`);
+      return undefined;
+    },
+    (command) => {
+      calls.push(`marker:${command}`);
+      return true;
+    },
+    (command) => {
+      calls.push(`rtk:${command}`);
+      return undefined;
+    },
+  );
+
+  expect(rewritten).toBeUndefined();
+  expect(calls).toEqual(['utf8:bun run dev', 'rtk:bun run dev', 'marker:bun run dev']);
 });
 
 test('does not touch the marker for unrelated commands or non-Windows platforms', () => {

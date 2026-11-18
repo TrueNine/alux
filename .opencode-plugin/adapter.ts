@@ -16,7 +16,7 @@ export function isShellTool(toolName: string): boolean {
 }
 
 type JsonObject = Record<string, unknown>;
-type CommandRewriter = (command: string, platform?: NodeJS.Platform) => string | undefined;
+type CommandRewriter = (command: string) => string | undefined;
 
 const commandKeys = ['command', 'cmd', 'script'] as const;
 
@@ -32,18 +32,25 @@ function commandEntry(args?: JsonObject): { key: (typeof commandKeys)[number]; c
   }
 }
 
+function commandCwd(args?: JsonObject): string | undefined {
+  for (const key of ['cwd', 'workdir', 'working_directory']) {
+    const value = args?.[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+}
+
 export type BeforeToolRewrite = { args: JsonObject };
 
 /**
- * Rewrites the command of a shell tool call (PowerShell UTF-8 preprocessing).
+ * Rewrites the command of a shell tool call (PowerShell UTF-8 preprocessing and RTK rewrite).
  * Returns `undefined` when the call must pass through untouched.
  */
-export function rewriteBeforeToolInput(toolName: string, args: unknown, rewrite: CommandRewriter = preprocessCommand, platform: NodeJS.Platform = process.platform): BeforeToolRewrite | undefined {
+export function rewriteBeforeToolInput(toolName: string, args: unknown, rewrite?: CommandRewriter, platform: NodeJS.Platform = process.platform): BeforeToolRewrite | undefined {
   if (!isShellTool(toolName)) return;
   const source = asObject(args);
   const entry = commandEntry(source);
   if (!source || !entry) return;
-  const rewritten = rewrite(entry.command, platform);
+  const rewritten = (rewrite ?? ((command: string) => preprocessCommand(command, commandCwd(source), platform)))(entry.command);
   if (!rewritten || rewritten === entry.command) return;
   return { args: { ...source, [entry.key]: rewritten } };
 }
