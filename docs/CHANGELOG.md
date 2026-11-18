@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.23 - 2026-11-19
 
 - 扩大 RTK 改写面:新增 `isRewritableCommand` 双门模型,PreToolUse 对一切非危险拼接(无 `&&`/`||`/`;`/重定向/`$(`/反引号)的单一命令都会咨询 `rtk rewrite`,由 rtk 自行决定能否优化——只读白名单外的简单命令(如 `bun run dev`)现在也进入改写;严格只读白名单 `isSafeRtkCommand` 仅保留给 PostToolUse 的 `rtk proxy` 回放(回放会二次执行命令,必须保证无副作用)。
 - RTK 压缩参数可调:PostToolUse 摘要新增 `ALUX_RTK_COMPACT_MIN_CHARS`(默认 500)、`ALUX_RTK_COMPACT_HEAD_LINES`(35)、`ALUX_RTK_COMPACT_TAIL_LINES`(35)、`ALUX_RTK_COMPACT_LINE_WIDTH`(320)四个环境变量,非法或非正值回落默认;`summarize` 支持显式 `Partial<CompactOptions>` 注入,README 新增 "RTK hooks" 章节与变量表。
