@@ -19,6 +19,7 @@ type CopilotPluginManifest = {
 describe('GitHub Copilot CLI plugin', () => {
   test('declares existing plugin assets', async () => {
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CopilotPluginManifest;
+    const packageManifest = JSON.parse(await readFile(resolve(repositoryRoot, 'package.json'), 'utf8')) as { version: string };
 
     expect(manifest).toMatchObject({
       name: 'alux',
@@ -26,7 +27,7 @@ describe('GitHub Copilot CLI plugin', () => {
       hooks: '../hooks/hooks.copilot.json',
       mcpServers: '../mcps/.mcp.copilot.json',
     });
-    expect(manifest.version).toBe('0.0.23');
+    expect(manifest.version).toBe(packageManifest.version);
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.hooks))).isFile()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.mcpServers))).isFile()).toBe(true);

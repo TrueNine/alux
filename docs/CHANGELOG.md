@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.24 - 2026-11-19
 
 - PostToolUse 按平台协议分流:仅在能真正替换模型所见结果的平台(Codex `exit 2` 替换语义、Copilot `modifiedResult`、CodeBuddy/Qoder `updatedToolOutput`、Cline/OpenCode SDK 直改 toolResponse)保留冗长输出压缩与 `rtk proxy` 回放;附加型平台(Claude/ZCode/Grok/Cursor)摘除 PostToolUse 钩子并在入口静默放行——其协议只能把反馈追加在冗长原文旁边,摘要在这些平台反而增加 token(经官方文档逐平台核实,Claude 为 "shows stderr to Claude"、Grok 为 passive event、Cursor 仅许 `additional_context`)。省 token 全部收敛到 PreToolUse 的 RTK 改写与 `ALUX_RTK_COMPACT_*` 可调压缩。
 
