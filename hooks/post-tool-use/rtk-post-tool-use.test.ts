@@ -36,48 +36,29 @@ test('PostToolUse invokes the Bun TypeScript entrypoint', () => {
   });
 });
 
-test('Claude PostToolUse only matches Bash', () => {
+test('Claude omits the PostToolUse hook (append-only protocol)', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.claude.json'), 'utf8'));
-  const group = configuration.hooks.PostToolUse[0];
 
-  expect(group).toEqual({
-    matcher: '^Bash$',
-    hooks: [
-      {
-        type: 'command',
-        command: `bun "\${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --claude`,
-        statusMessage: 'RTK output compaction',
-      },
-    ],
-  });
+  expect(configuration.hooks.PostToolUse).toBeUndefined();
 });
 
-test('Cursor PostToolUse injects processed Shell output as context', () => {
+test('Cursor omits the PostToolUse hook (additional context is append-only)', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.cursor.json'), 'utf8'));
 
   expect(configuration.version).toBe(1);
-  expect(configuration.hooks.postToolUse).toEqual([
+  expect(configuration.hooks.preToolUse).toEqual([
     {
-      command: `bun "\${CURSOR_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --cursor`,
+      command: `bun "\${CURSOR_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --cursor`,
       matcher: '^Shell$',
     },
   ]);
+  expect(configuration.hooks.postToolUse).toBeUndefined();
 });
 
-test('ZCode PostToolUse reuses the Claude-compatible Bash protocol', () => {
+test('ZCode omits the PostToolUse hook (append-only protocol)', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.zcode.json'), 'utf8'));
-  const group = configuration.hooks.PostToolUse[0];
 
-  expect(group).toEqual({
-    matcher: '^Bash$',
-    hooks: [
-      {
-        type: 'command',
-        command: `bun "\${ZCODE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --zcode`,
-        statusMessage: 'RTK output compaction',
-      },
-    ],
-  });
+  expect(configuration.hooks.PostToolUse).toBeUndefined();
 });
 
 test('CodeBuddy PostToolUse reuses the Claude-compatible Bash protocol', () => {
@@ -96,19 +77,10 @@ test('CodeBuddy PostToolUse reuses the Claude-compatible Bash protocol', () => {
   });
 });
 
-test('Grok PostToolUse reuses the Claude-compatible Bash protocol', () => {
+test('Grok omits the PostToolUse hook (passive event, stdout ignored)', () => {
   const configuration = JSON.parse(readFileSync(join(hooksDirectory, 'hooks.grok.json'), 'utf8'));
-  const group = configuration.hooks.PostToolUse[0];
 
-  expect(group).toEqual({
-    matcher: '^Bash$',
-    hooks: [
-      {
-        type: 'command',
-        command: `bun "\${GROK_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts" --grok`,
-      },
-    ],
-  });
+  expect(configuration.hooks.PostToolUse).toBeUndefined();
 });
 
 test('TypeScript entrypoint preserves a no-op hook result', () => {
@@ -121,7 +93,7 @@ test('TypeScript entrypoint preserves a no-op hook result', () => {
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
-test('TypeScript entrypoint summarizes verbose Bash output', () => {
+test('Claude entrypoint stays silent on verbose Bash output (append-only protocol)', () => {
   const payload = {
     tool_name: 'Bash',
     tool_input: { command: 'bun test' },
@@ -132,14 +104,12 @@ test('TypeScript entrypoint summarizes verbose Bash output', () => {
   };
   const result = invokeEntrypoint(payload);
 
-  const replacement = new TextDecoder().decode(result.stderr);
-  expect(result.status).toBe(2);
-  expect(replacement).toContain('Output summary (100 lines)');
-  expect(replacement).toContain('... omitted verbose output ...');
-  expect(replacement).not.toContain('line 50');
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
-test('Cursor entrypoint summarizes JSON-stringified Shell output', () => {
+test('Cursor entrypoint stays silent on verbose Shell output (append-only protocol)', () => {
   const result = spawnSync('bun', [entrypoint, '--cursor'], {
     input: JSON.stringify({
       tool_name: 'Shell',
@@ -153,11 +123,8 @@ test('Cursor entrypoint summarizes JSON-stringified Shell output', () => {
   });
 
   expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
-  const output = JSON.parse(new TextDecoder().decode(result.stdout));
-  expect(output.additional_context).toContain('Output summary (100 lines)');
-  expect(output.additional_context).toContain('... omitted verbose output ...');
-  expect(output.additional_context).not.toContain('line 50');
 });
 
 test('Codex entrypoint retains exec tool support', () => {
@@ -172,7 +139,7 @@ test('Codex entrypoint retains exec tool support', () => {
   expect(new TextDecoder().decode(result.stderr)).toContain('Output summary (100 lines)');
 });
 
-test('ZCode entrypoint summarizes verbose Bash output', () => {
+test('ZCode entrypoint stays silent on verbose Bash output (append-only protocol)', () => {
   const result = spawnSync('bun', [entrypoint, '--zcode'], {
     input: JSON.stringify({
       tool_name: 'Bash',
@@ -184,11 +151,9 @@ test('ZCode entrypoint summarizes verbose Bash output', () => {
     }),
   });
 
-  expect(result.status).toBe(2);
-  const replacement = new TextDecoder().decode(result.stderr);
-  expect(replacement).toContain('Output summary (100 lines)');
-  expect(replacement).toContain('... omitted verbose output ...');
-  expect(replacement).not.toContain('line 50');
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
 test('CodeBuddy entrypoint replaces verbose Bash output', () => {
@@ -271,7 +236,7 @@ test('Copilot entrypoint ignores non-shell tools', () => {
   expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
-test('Grok entrypoint summarizes verbose run_terminal_command output', () => {
+test('Grok entrypoint stays silent on verbose run_terminal_command output (passive event)', () => {
   const result = spawnSync('bun', [entrypoint, '--grok'], {
     input: JSON.stringify({
       toolName: 'run_terminal_command',
@@ -285,11 +250,9 @@ test('Grok entrypoint summarizes verbose run_terminal_command output', () => {
     }),
   });
 
-  expect(result.status).toBe(2);
-  const replacement = new TextDecoder().decode(result.stderr);
-  expect(replacement).toContain('Output summary (100 lines)');
-  expect(replacement).toContain('... omitted verbose output ...');
-  expect(replacement).not.toContain('line 50');
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stdout)).toBe('');
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
 });
 
 test('entrypoint without a platform mode is a no-op', () => {

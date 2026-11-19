@@ -22,18 +22,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "^Bash$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun \"${ZCODE_PLUGIN_ROOT}/hooks/post-tool-use/rtk-post-tool-use.ts\" --zcode",
-            "statusMessage": "RTK output compaction"
-          }
-        ]
-      }
     ]
   }
 }

@@ -368,7 +368,7 @@ Feature: RTK 钩子行为
         | codex    | ^(Bash\|exec\|exec_command\|unified_exec)$ |
         | cursor   | ^Shell$                          |
 
-  Rule: PostToolUse 只压缩冗长输出并对安全命令做失败回放
+  Rule: PostToolUse 仅在替换型平台压缩冗长输出并对安全命令做失败回放
 
     Scenario: 短输出不做摘要
       Given a short tool output "ok"
@@ -434,19 +434,23 @@ Feature: RTK 钩子行为
       When I invoke the PostToolUse entrypoint
       Then the PostToolUse result should be silent
 
-    Scenario: Claude 百行 Bash 输出经由标准错误替换并退出码为二
+    Scenario Outline: 附加型平台的冗长输出静默放过
       Given a PostToolUse payload for tool "Bash" with 100 lines of output
-      And a platform flag "--claude"
+      And a platform flag "<flag>"
       When I invoke the PostToolUse entrypoint
-      Then the PostToolUse exit code should be 2
-      And the PostToolUse stderr should contain "Output summary (100 lines)"
+      Then the PostToolUse result should be silent
 
-    Scenario: Cursor 百行 Shell 输出以附加上下文返回并退出码为零
+      Examples:
+        | flag     |
+        | --claude |
+        | --zcode  |
+        | --grok   |
+
+    Scenario: Cursor 冗长 Shell 输出静默放过
       Given a PostToolUse payload for tool "Shell" with 100 lines of output
       And a platform flag "--cursor"
       When I invoke the PostToolUse entrypoint
-      Then the PostToolUse exit code should be 0
-      And the PostToolUse stdout should contain "Output summary (100 lines)"
+      Then the PostToolUse result should be silent
 
     Scenario: Codex 保留 exec 系列工具支持
       Given a PostToolUse payload for tool "exec" with 100 lines of output
@@ -462,9 +466,7 @@ Feature: RTK 钩子行为
 
       Examples:
         | platform | matcher                          |
-        | claude   | ^Bash$                           |
         | codex    | ^(Bash\|exec\|exec_command\|unified_exec)$ |
-        | cursor   | ^Shell$                          |
 
     Scenario: 拒绝残留 Python 实现依赖
       Given the PostToolUse entrypoint source

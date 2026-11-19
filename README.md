@@ -94,7 +94,7 @@ New-Item -ItemType Directory -Force "$HOME\.cursor\plugins\local"
 New-Item -ItemType Junction -Path "$HOME\.cursor\plugins\local\alux" -Target (Get-Location)
 ```
 
-The plugin exposes the skills under `skills/cursor-skills` and loads `hooks/hooks.cursor.json`. Its Cursor hooks mirror the Claude workflow: `sessionStart` synchronizes derived instruction files, `preToolUse` applies the PowerShell UTF-8 rewrite and rewrites supported Shell commands through RTK before execution, and `postToolUse` compacts verbose fallback output. Cursor only permits shell post-hooks to inject `additional_context`, so fallback summaries are added to the conversation rather than replacing Cursor's original tool result. The `/add-plugin alux` command will only be documented after Alux is available in the Cursor Marketplace.
+The plugin exposes the skills under `skills/cursor-skills` and loads `hooks/hooks.cursor.json`. Its Cursor hooks mirror the Claude workflow: `sessionStart` synchronizes derived instruction files, and `preToolUse` applies the PowerShell UTF-8 rewrite and rewrites supported Shell commands through RTK before execution. The post-tool hook is omitted: Cursor only permits shell post-hooks to inject `additional_context`, which appends to the conversation instead of replacing the original tool result, so a summary would only add tokens. The `/add-plugin alux` command will only be documented after Alux is available in the Cursor Marketplace.
 
 
 </details>
@@ -123,7 +123,7 @@ bun alux/scripts/install-project-assets.ts . --platform cline
 
 ### ZCode
 
-ZCode reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.zcode-plugin/` (ZCode's preferred manifest location) together with its own marketplace catalog at `.zcode-plugin/marketplace.json`; it loads the skills under `skills/zcode-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.zcode.json` over the Claude-compatible hook protocol.
+ZCode reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.zcode-plugin/` (ZCode's preferred manifest location) together with its own marketplace catalog at `.zcode-plugin/marketplace.json`; it loads the skills under `skills/zcode-skills/` and enables the shared session-start and pre-tool hooks from `hooks/hooks.zcode.json` over the Claude-compatible hook protocol. The post-tool hook is omitted: Claude-compatible PostToolUse feedback is appended to the tool result rather than replacing it, so verbose-output savings come from the PreToolUse RTK rewrite.
 
 <details>
 
@@ -137,7 +137,7 @@ Install from a checked-out copy of this repository:
 
 ### Grok Build
 
-Grok Build reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.grok-plugin/` (Grok's preferred manifest location) together with its own marketplace catalog at `.grok-plugin/marketplace.json` (which Grok prefers over the `.claude-plugin/` copy); it loads the skills under `skills/grok-skills/` and enables the shared session-start, pre-tool, and post-tool hooks from `hooks/hooks.grok.json` over the Claude-compatible hook protocol.
+Grok Build reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.grok-plugin/` (Grok's preferred manifest location) together with its own marketplace catalog at `.grok-plugin/marketplace.json` (which Grok prefers over the `.claude-plugin/` copy); it loads the skills under `skills/grok-skills/` and enables the shared session-start and pre-tool hooks from `hooks/hooks.grok.json` over the Claude-compatible hook protocol. The post-tool hook is omitted: Grok treats PostToolUse as a passive event and ignores hook output, so it could never replace the tool result.
 
 <details>
 
@@ -147,7 +147,7 @@ grok plugin marketplace add TrueNine/alux
 grok plugin install alux --trust
 ```
 
-The `^Bash$` hook matcher reaches Grok's native `run_terminal_command` tool through Grok's Claude tool-name aliases, and plugin hook commands expand `${GROK_PLUGIN_ROOT}`. Pre-tool rewrites travel through Grok's `hookSpecificOutput.updatedInput` support, and post-tool summaries are delivered to the model as exit-2 feedback. Grok defaults its hook timeout to 5 seconds, so the session-start and pre-tool handlers declare an explicit 30-second timeout.
+The `^Bash$` hook matcher reaches Grok's native `run_terminal_command` tool through Grok's Claude tool-name aliases, and plugin hook commands expand `${GROK_PLUGIN_ROOT}`. Pre-tool rewrites travel through Grok's `hookSpecificOutput.updatedInput` support. Grok defaults its hook timeout to 5 seconds, so the session-start and pre-tool handlers declare an explicit 30-second timeout.
 
 </details>
 
@@ -198,7 +198,7 @@ Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --
 
 ## RTK hooks
 
-Every platform shares one RTK pipeline in [`hooks/`](hooks/): `PreToolUse` first applies the Windows PowerShell `Get-Content` UTF-8 rewrite, then consults `rtk rewrite` for every single (non-compound) command — rtk itself decides what it can optimize, so simple commands outside the read-only whitelist (for example `bun run dev`) are rewritten too. Commands with shell composition (`&&`, `||`, `;`, redirects, `$(`, backticks) skip the rewrite and pass through untouched. `PostToolUse` compacts verbose output (kept head/tail lines around an omission marker) and replays safe read-only commands through `rtk proxy` for the compact native output; the strict read-only whitelist (`isSafeRtkCommand`) guards only this replay, because replay re-executes the command.
+Every platform shares one RTK pipeline in [`hooks/`](hooks/): `PreToolUse` first applies the Windows PowerShell `Get-Content` UTF-8 rewrite, then consults `rtk rewrite` for every single (non-compound) command — rtk itself decides what it can optimize, so simple commands outside the read-only whitelist (for example `bun run dev`) are rewritten too. Commands with shell composition (`&&`, `||`, `;`, redirects, `$(`, backticks) skip the rewrite and pass through untouched. `PostToolUse` compacts verbose output (kept head/tail lines around an omission marker) and replays safe read-only commands through `rtk proxy` for the compact native output — but only on platforms whose PostToolUse protocol actually replaces the result the model sees (Codex, Copilot, CodeBuddy, Qoder, plus the Cline/OpenCode SDK adapters). Append-only platforms (Claude, ZCode, Grok, Cursor) omit the post hook entirely: their feedback would be added next to the original verbose output instead of replacing it, which costs tokens rather than saving them. The strict read-only whitelist (`isSafeRtkCommand`) guards the replay, because replay re-executes the command.
 
 Compaction thresholds are tunable through environment variables (invalid or non-positive values fall back to the defaults):
 

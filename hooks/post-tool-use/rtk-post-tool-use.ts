@@ -9,6 +9,13 @@ export { proxyInvocation, resolveOptimizedCommand } from '../shared/rtk.ts';
 const shellTools = new Set(['Bash', 'shell', 'exec', 'exec_command', 'unified_exec', 'execute_command', 'write_stdin']);
 const copilotShellTools = new Set(['bash', 'shell', 'powershell', 'Bash']);
 const grokShellTools = new Set(['Bash', 'run_terminal_command']);
+// Platforms whose PostToolUse protocol can only append to the tool result
+// (Claude Code "shows stderr to Claude" without replacing it, Cursor only
+// injects additional context, Grok treats PostToolUse as a passive event and
+// ignores hook stdout). A summary on these platforms inflates the context
+// instead of saving tokens, so they stay silent: the savings come from the
+// PreToolUse RTK rewrite.
+const additivePlatforms: ReadonlySet<HookPlatform> = new Set(['claude', 'zcode', 'grok', 'cursor']);
 type JsonObject = Record<string, unknown>;
 type HookPlatform = 'claude' | 'codex' | 'cursor' | 'cline' | 'copilot' | 'zcode' | 'grok' | 'codebuddy' | 'qoder';
 const platform: HookPlatform | undefined = process.argv.includes('--claude')
@@ -138,6 +145,7 @@ function parseCursorToolOutput(value: unknown): JsonObject | undefined {
 }
 
 async function main(): Promise<void> {
+  if (platform && additivePlatforms.has(platform)) return;
   let payload: JsonObject;
   try {
     payload = JSON.parse(new TextDecoder().decode(await Bun.stdin.arrayBuffer())) as JsonObject;

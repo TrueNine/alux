@@ -151,14 +151,13 @@ describe('Grok Build plugin', () => {
       type: 'command',
       command: `bun "\${GROK_PLUGIN_ROOT}/hooks/session-start/sync-agent-instructions.ts"`,
     });
-    for (const event of ['PreToolUse', 'PostToolUse'] as const) {
-      const group = configuration.hooks[event][0];
-      expect(group?.matcher).toBe('^Bash$');
-      expect(group?.hooks[0]).toMatchObject({
-        type: 'command',
-        command: `bun "\${GROK_PLUGIN_ROOT}/hooks/${event === 'PreToolUse' ? 'pre-tool-use' : 'post-tool-use'}/rtk-${event === 'PreToolUse' ? 'pre' : 'post'}-tool-use.ts" --grok`,
-      });
-    }
+    const group = configuration.hooks.PreToolUse[0];
+    expect(group?.matcher).toBe('^Bash$');
+    expect(group?.hooks[0]).toMatchObject({
+      type: 'command',
+      command: `bun "\${GROK_PLUGIN_ROOT}/hooks/pre-tool-use/rtk-pre-tool-use.ts" --grok`,
+    });
+    expect(configuration.hooks.PostToolUse).toBeUndefined();
     for (const handler of configuration.hooks.PreToolUse[0]?.hooks ?? []) {
       expect(handler.timeout).toBeGreaterThan(5);
     }

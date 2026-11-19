@@ -26,7 +26,7 @@ describe('GitHub Copilot CLI plugin', () => {
       hooks: '../hooks/hooks.copilot.json',
       mcpServers: '../mcps/.mcp.copilot.json',
     });
-    expect(manifest.version).toBe('0.0.22');
+    expect(manifest.version).toBe('0.0.23');
     expect((await stat(resolve(pluginRoot, manifest.skills))).isDirectory()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.hooks))).isFile()).toBe(true);
     expect((await stat(resolve(pluginRoot, manifest.mcpServers))).isFile()).toBe(true);
