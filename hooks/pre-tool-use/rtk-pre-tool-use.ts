@@ -3,6 +3,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { isRewritableCommand, resolveOptimizedCommand } from '../shared/rtk.ts';
+import { mapPowerShellCmdlets } from './powershell-cmdlet-map.ts';
 import { rewritePowerShellGetContent } from './powershell-get-content-utf8.ts';
 import '../shared/log.ts';
 
@@ -65,12 +66,17 @@ export function preprocessCommand(
   platform: NodeJS.Platform = process.platform,
   localAppData = process.env.LOCALAPPDATA,
   rewrite: CommandRewriter = rewritePowerShellGetContent,
+  mapPowerShell: CommandRewriter = mapPowerShellCmdlets,
   refreshMarker: MarkerRefresher = refreshRtkWarningMarker,
   optimize: CommandOptimizer = resolveOptimizedCommand,
   rewritable: CommandRewriteGate = isRewritableCommand,
 ): string | undefined {
   const rewritten = rewrite(command, platform);
-  const candidate = rewritten ?? command;
+  // The cmdlet mapping only produces a consult candidate: rtk confirming the
+  // RTK form is what reaches the model, while a refused or failed consult
+  // falls back to the PowerShell rewrite result, exactly as before.
+  const mapped = mapPowerShell(command, platform);
+  const candidate = mapped ?? rewritten ?? command;
   const optimized = rewritable(candidate) ? optimize(candidate, cwd) : undefined;
   const processed = optimized ?? rewritten;
   refreshMarker(processed ?? candidate, platform, localAppData);
