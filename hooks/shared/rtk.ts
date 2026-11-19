@@ -18,6 +18,11 @@ const replaySafeCommands = [
   /^deno\s+(?:test|lint|check)(?:\s|$)/,
 ];
 const unsafeTokens = ['&&', '||', ';', '>', '>>', '<', '2>', '&>', '$(', '`'];
+// Redirections and command substitutions stay out of the rewrite path: rtk
+// returns no rewrite for them, so consulting it would only cost a subprocess.
+// Sequential compounds (`&&` / `;` / `||`, multi-line) ARE rewritable — rtk
+// rewrites each segment (verified against rtk 1.1.0, quoted operators included).
+const rewriteUnsafeTokens = ['>', '>>', '<', '2>', '&>', '$(', '`'];
 
 type SpawnOptions = {
   cmd: string[];
@@ -64,14 +69,16 @@ export function isSafeRtkCommand(command: string): boolean {
 }
 
 /**
- * PreToolUse gate for consulting `rtk rewrite`: every single (non-compound)
- * command may be handed to rtk, which decides on its own what it can optimize.
- * The strict read-only whitelist (`isSafeRtkCommand`) only guards the
+ * PreToolUse gate for consulting `rtk rewrite`: every command without
+ * redirections or command substitutions may be handed to rtk, which decides on
+ * its own what it can optimize — including sequential compounds (`&&` / `;` /
+ * `||`, multi-line), which rtk rewrites segment-wise. The strict read-only
+ * whitelist (`isSafeRtkCommand`, all unsafe tokens included) only guards the
  * PostToolUse replay, which re-executes commands through `rtk proxy`.
  */
 export function isRewritableCommand(command: string): boolean {
   const value = normalizeRtkCommand(command);
-  return Boolean(value) && !unsafeTokens.some((token) => value.includes(token));
+  return Boolean(value) && !rewriteUnsafeTokens.some((token) => value.includes(token));
 }
 
 export function resolveOptimizedCommand(command: string, cwd?: string, spawn: SpawnSync = spawnSync): string | undefined {

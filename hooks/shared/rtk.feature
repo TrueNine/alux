@@ -3,7 +3,7 @@ Feature: RTK 钩子行为
 
   作为 Alux 钩子维护者
   我希望 共享 RTK 规则能准确判定安全命令并在执行前后做预处理与压缩
-  以便 只读与构建检查命令可回放优化而写操作与危险拼接一律放行失败保持静默。
+  以便 只读与构建检查命令可回放优化,顺序拼接命令(`&&`/`;`/`||`)按段进入改写,而重定向与命令替换一律放行失败保持静默。
 
   Background:
     Given Alux uses the shared RTK rules
@@ -324,12 +324,20 @@ Feature: RTK 钩子行为
       And the RTK rewrite should be consulted
       And the marker should have seen "rtk git status"
 
-    Scenario: 危险拼接不走 RTK 改写
-      Given an RTK preprocess input "rm -rf node_modules && echo done"
+    Scenario: 顺序拼接也走 RTK 改写
+      Given an RTK preprocess input "git status && git diff"
+      And an RTK rewrite stub with exit code 3 and output "rtk git status && rtk git diff"
+      When I preprocess the command through RTK
+      Then the preprocessed command should be "rtk git status && rtk git diff"
+      And the RTK rewrite should be consulted
+      And the marker should have seen "rtk git status && rtk git diff"
+
+    Scenario: 重定向与命令替换不走 RTK 改写
+      Given an RTK preprocess input "git status > out.txt"
       When I preprocess the command through RTK
       Then the RTK rewrite should be skipped
       And the command should fall back to the PowerShell rewrite result
-      And the marker should have seen "rm -rf node_modules && echo done"
+      And the marker should have seen "git status > out.txt"
 
     Scenario: 只读白名单外的简单命令也咨询 RTK 改写
       Given an RTK preprocess input "bun run dev"

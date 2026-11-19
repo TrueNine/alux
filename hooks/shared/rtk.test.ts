@@ -45,8 +45,14 @@ test('rewritable gate passes every single command to rtk, including commands out
   }
 });
 
-test('rewritable gate blocks empty, compound, redirected, and substituted commands', () => {
-  for (const command of ['', '   ', 'rm -rf node_modules && echo done', 'a || true b', 'ls > out.txt', 'tr < in.txt', 'echo $(uname)', 'cat file `pwd`', 'a; b']) {
+test('rewritable gate passes sequential compounds to rtk, which rewrites them segment-wise', () => {
+  for (const command of ['git status && git diff', 'ls; rm -rf dist', 'git status || echo dirty', 'ls docs\nrg -n foo docs', "rg 'foo && bar' file.txt"]) {
+    expect(isRewritableCommand(command)).toBe(true);
+  }
+});
+
+test('rewritable gate blocks empty, redirected, and substituted commands', () => {
+  for (const command of ['', '   ', 'ls > out.txt', 'tr < in.txt', 'echo $(uname)', 'cat file `pwd`', 'git status 2> err.txt']) {
     expect(isRewritableCommand(command)).toBe(false);
   }
 });
