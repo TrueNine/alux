@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.0.25 - 2026-11-20
 
 - 新增 PowerShell cmdlet → RTK 候选映射层:经实测确认 rtk(含 v1.2.1 与 dev-1.3.0-rc.648)对 PowerShell cmdlet 无任何改写能力(`rtk rewrite` 对 `Get-ChildItem`/`Get-Content`/`Select-String` 全部 exit 1,`rtk hook check --agent copilot` 同样拒绝,上游源码零 cmdlet 处理),`rtk run --shell powershell` 亦为无过滤的纯执行通道——`preprocessCommand` 遂在 PowerShell 纠偏之后新增 `mapPowerShellCmdlets` 钩子层映射(仅 win32):常用只读 cmdlet(`Get-ChildItem`/`gci`→`ls`、`Get-Content`/`gc`→`cat`、`Select-String`/`sls`→`rg`,孤立 `-Recurse` 翻译为 `-R`)翻译为 POSIX 候选喂给 `rtk rewrite` 咨询,映射本身不产生替换——rtk 确认的 RTK 形式(`cat README.md` → `rtk read README.md`,实测 `rtk ls`/`rtk read`/`rtk rg` 在 Windows 均可用)才替换模型所见命令,咨询被拒或 rtk 缺失时回落到既有 UTF-8 纠偏/原样放行,失败模式零新增;带任何参数(`-Tail`/`-Filter`/`-Name`/`-Encoding`)、引号、拼接(`&&`/`;`/`|`)、重定向、`$(`/反引号的 cmdlet 一律拒绝映射。Windows 宿主(codex/copilot 几乎全部 PowerShell)的 `Get-ChildItem` 等命令由此首次进入 RTK 压缩链路,对应单测与 BDD 场景已补齐(全套 140 用例通过)。
 - 放宽 PreToolUse 改写门,顺序拼接命令进入 RTK 改写:实测 rtk 1.1.0 对 `&&`/`;`/`||` 复合命令逐段改写(`git status && git diff` → `rtk git status && rtk git diff`,含引号内操作符与多行命令),此前 `isRewritableCommand` 将它们整体挡在门外是 ZCode 等平台"换个调用方式就逃逸"的主因;现改写门仅拒绝重定向(`>`/`>>`/`<`/`2>`/`&>`)与命令替换(`$(`/反引号)——rtk 对这些返回空,咨询只耗子进程;严格只读白名单 `isSafeRtkCommand`(PostToolUse `rtk proxy` 回放)保持全部危险 token 不变,并补充顺序拼接/重定向的单测与 BDD 场景。
