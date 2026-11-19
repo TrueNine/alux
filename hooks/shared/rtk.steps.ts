@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Before, Given, Then, When } from '@cucumber/cucumber';
 import { summarize } from '../post-tool-use/rtk-post-tool-use.ts';
+import { mapPowerShellCmdlets } from '../pre-tool-use/powershell-cmdlet-map.ts';
 import { rewritePowerShellGetContent } from '../pre-tool-use/powershell-get-content-utf8.ts';
 import { preprocessCommand, refreshRtkWarningMarker } from '../pre-tool-use/rtk-pre-tool-use.ts';
 import { isSafeRtkCommand, normalizeRtkCommand, proxyInvocation, resolveOptimizedCommand } from './rtk.ts';
@@ -38,6 +39,9 @@ interface ScenarioState {
   powerShellPlatform?: string;
   powerShellOffsets?: number[];
   powerShellRewritten?: string;
+  mappingCommand?: string;
+  mappingPlatform?: string;
+  mapped?: string;
   markerSeen?: string[];
   optimizeCalls?: number;
   hookTool?: string;
@@ -253,6 +257,7 @@ When('I preprocess the command', () => {
     'win32',
     createTempDir(),
     (command) => rewritePowerShellGetContent(command, 'win32', () => [11]),
+    () => undefined,
     (command) => {
       state.markerSeen = [...(state.markerSeen ?? []), command];
       return true;
@@ -286,6 +291,7 @@ When('I preprocess the command through RTK', () => {
     'linux',
     createTempDir(),
     () => undefined,
+    () => undefined,
     (command) => {
       state.markerSeen = [...(state.markerSeen ?? []), command];
       return true;
@@ -307,6 +313,60 @@ Then('the RTK rewrite should be consulted', () => {
 
 Then('the RTK rewrite should be skipped', () => {
   if (state.optimizeCalls !== 0) throw new Error(`expected the RTK rewrite to be skipped, got ${state.optimizeCalls}`);
+});
+
+// PreToolUse：PowerShell cmdlet 映射
+
+Given('a PowerShell mapping input {string} on platform {string}', (command: string, platform: string) => {
+  state.mappingCommand = command;
+  state.mappingPlatform = platform;
+});
+
+When('I map PowerShell cmdlets', () => {
+  if (state.mappingCommand === undefined || state.mappingPlatform === undefined) throw new Error('no PowerShell mapping input was set');
+  state.mapped = mapPowerShellCmdlets(state.mappingCommand, state.mappingPlatform as NodeJS.Platform);
+});
+
+Then('the mapped command should be {string}', (expected: string) => {
+  if (state.mapped !== expected) throw new Error(`expected mapped ${JSON.stringify(expected)}, got ${JSON.stringify(state.mapped)}`);
+});
+
+Then('there should be no mapped command', () => {
+  if (state.mapped !== undefined) throw new Error(`expected no mapped command, got ${JSON.stringify(state.mapped)}`);
+});
+
+When('I preprocess the command with cmdlet mapping', () => {
+  if (state.command === undefined) throw new Error('no command was set');
+  state.normalized = preprocessCommand(
+    state.command,
+    undefined,
+    'win32',
+    createTempDir(),
+    (command) => (command === 'Get-Content README.md' ? 'Get-Content -Encoding utf8 README.md' : undefined),
+    (command) => mapPowerShellCmdlets(command, 'win32'),
+    (command) => {
+      state.markerSeen = [...(state.markerSeen ?? []), command];
+      return true;
+    },
+    (command) => (command === 'cat README.md' ? 'rtk read README.md' : undefined),
+  );
+});
+
+When('I preprocess the command with cmdlet mapping but RTK refuses', () => {
+  if (state.command === undefined) throw new Error('no command was set');
+  state.normalized = preprocessCommand(
+    state.command,
+    undefined,
+    'win32',
+    createTempDir(),
+    (command) => (command === 'Get-Content README.md' ? 'Get-Content -Encoding utf8 README.md' : undefined),
+    (command) => mapPowerShellCmdlets(command, 'win32'),
+    (command) => {
+      state.markerSeen = [...(state.markerSeen ?? []), command];
+      return true;
+    },
+    () => undefined,
+  );
 });
 
 // 钩子入口调用

@@ -346,6 +346,57 @@ Feature: RTK 钩子行为
       And the command should fall back to the PowerShell rewrite result
       And the marker should have seen "bun run dev"
 
+  Rule: PowerShell cmdlet 只读命令映射为 RTK 改写候选
+
+    Scenario Outline: 常用只读 cmdlet 映射为 POSIX 候选
+      Given a PowerShell mapping input "<command>" on platform "win32"
+      When I map PowerShell cmdlets
+      Then the mapped command should be "<mapped>"
+
+      Examples:
+        | command                                    | mapped                          |
+        | Get-ChildItem                              | ls                              |
+        | Get-ChildItem -Recurse                     | ls -R                           |
+        | Get-ChildItem src -Recurse                 | ls -R src                       |
+        | Get-Content README.md                      | cat README.md                   |
+        | Get-Content a.log b.log                    | cat a.log b.log                 |
+        | Select-String Unreleased docs/CHANGELOG.md | rg Unreleased docs/CHANGELOG.md |
+
+    Scenario Outline: 带参数、引号或拼接的 cmdlet 不映射
+      Given a PowerShell mapping input "<command>" on platform "win32"
+      When I map PowerShell cmdlets
+      Then there should be no mapped command
+
+      Examples:
+        | command                              |
+        | Get-Content README.md -TotalCount 5  |
+        | Get-Content -Encoding utf8 README.md |
+        | Get-ChildItem -Filter *.ts           |
+        | Get-ChildItem -Recurse -Filter *.ts  |
+        | Select-String -Pattern foo file.txt  |
+        | Get-Content 'a b.log'                |
+        | Get-ChildItem && git status          |
+        | Get-ChildItem \| Select-Object Name  |
+        | Get-Content a.log > out.txt          |
+        | Get-Process                          |
+
+    Scenario: 非 Windows 平台不映射
+      Given a PowerShell mapping input "Get-ChildItem" on platform "linux"
+      When I map PowerShell cmdlets
+      Then there should be no mapped command
+
+    Scenario: 映射候选经 RTK 改写后替换命令
+      Given an RTK preprocess input "Get-Content README.md"
+      When I preprocess the command with cmdlet mapping
+      Then the preprocessed command should be "rtk read README.md"
+      And the marker should have seen "rtk read README.md"
+
+    Scenario: RTK 拒绝改写映射候选时回落 PowerShell 纠偏结果
+      Given an RTK preprocess input "Get-Content README.md"
+      When I preprocess the command with cmdlet mapping but RTK refuses
+      Then the preprocessed command should be "Get-Content -Encoding utf8 README.md"
+      And the marker should have seen "Get-Content -Encoding utf8 README.md"
+
     Scenario Outline: 平台与工具名不匹配时入口静默放过
       Given a PreToolUse payload for tool "<tool>" with command "git status"
       And a platform flag "<flag>"

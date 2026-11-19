@@ -4,9 +4,18 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
+import { mapPowerShellCmdlets } from './powershell-cmdlet-map';
 import { preprocessCommand, refreshRtkWarningMarker } from './rtk-pre-tool-use';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function rtkAvailable(): boolean {
+  try {
+    return spawnSync('rtk', ['--version'], { stdio: 'pipe' }).status === 0;
+  } catch {
+    return false;
+  }
+}
 
 const hooksDirectory = join(__dirname, '..');
 const entrypoint = join(__dirname, 'rtk-pre-tool-use.ts');
@@ -31,7 +40,7 @@ test('Codex entrypoint ignores non-shell tools', () => {
   const result = spawnSync('bun', [entrypoint, '--codex'], {
     input: JSON.stringify({
       tool_name: 'Read',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -44,7 +53,7 @@ test.skipIf(process.platform !== 'win32')('Codex entrypoint rewrites Bash comman
   const result = spawnSync('bun', [entrypoint, '--codex'], {
     input: JSON.stringify({
       tool_name: 'Bash',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -54,7 +63,7 @@ test.skipIf(process.platform !== 'win32')('Codex entrypoint rewrites Bash comman
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
-      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
     },
   });
 });
@@ -194,6 +203,7 @@ test('rewrites PowerShell Get-Content before RTK preprocessing', () => {
       calls.push(`utf8:${command}`);
       return 'Get-Content -Encoding utf8 README.md';
     },
+    () => undefined,
     (command) => {
       calls.push(`rtk:${command}`);
       return false;
@@ -217,6 +227,7 @@ test('rewrites safe commands through RTK before execution on every platform', ()
       calls.push(`utf8:${command}`);
       return undefined;
     },
+    () => undefined,
     (command) => {
       calls.push(`marker:${command}`);
       return true;
@@ -242,6 +253,7 @@ test('consults the RTK rewrite for sequential compound commands', () => {
       calls.push(`utf8:${command}`);
       return undefined;
     },
+    () => undefined,
     (command) => {
       calls.push(`marker:${command}`);
       return true;
@@ -267,6 +279,7 @@ test('skips the RTK rewrite for redirected commands and keeps the PowerShell rew
       calls.push(`utf8:${command}`);
       return undefined;
     },
+    () => undefined,
     (command) => {
       calls.push(`marker:${command}`);
       return true;
@@ -292,6 +305,7 @@ test('consults the RTK rewrite for simple commands outside the replay whitelist'
       calls.push(`utf8:${command}`);
       return undefined;
     },
+    () => undefined,
     (command) => {
       calls.push(`marker:${command}`);
       return true;
@@ -321,7 +335,7 @@ test('Claude TypeScript entrypoint ignores non-Bash tools', () => {
   const result = spawnSync('bun', [entrypoint, '--claude'], {
     input: JSON.stringify({
       tool_name: 'Read',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -334,7 +348,7 @@ test('ZCode entrypoint ignores non-Bash tools', () => {
   const result = spawnSync('bun', [entrypoint, '--zcode'], {
     input: JSON.stringify({
       tool_name: 'Read',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -347,7 +361,7 @@ test.skipIf(process.platform !== 'win32')('ZCode entrypoint rewrites Bash comman
   const result = spawnSync('bun', [entrypoint, '--zcode'], {
     input: JSON.stringify({
       tool_name: 'Bash',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -357,7 +371,7 @@ test.skipIf(process.platform !== 'win32')('ZCode entrypoint rewrites Bash comman
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
-      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
     },
   });
 });
@@ -366,7 +380,7 @@ test('CodeBuddy entrypoint ignores non-Bash tools', () => {
   const result = spawnSync('bun', [entrypoint, '--codebuddy'], {
     input: JSON.stringify({
       tool_name: 'Read',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -379,7 +393,7 @@ test('Qoder entrypoint ignores non-Bash tools', () => {
   const result = spawnSync('bun', [entrypoint, '--qoder'], {
     input: JSON.stringify({
       tool_name: 'Read',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -392,7 +406,7 @@ test.skipIf(process.platform !== 'win32')('Qoder entrypoint rewrites Bash comman
   const result = spawnSync('bun', [entrypoint, '--qoder'], {
     input: JSON.stringify({
       tool_name: 'Bash',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -402,7 +416,7 @@ test.skipIf(process.platform !== 'win32')('Qoder entrypoint rewrites Bash comman
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
-      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
     },
   });
 });
@@ -411,7 +425,7 @@ test.skipIf(process.platform !== 'win32')('CodeBuddy entrypoint rewrites Bash co
   const result = spawnSync('bun', [entrypoint, '--codebuddy'], {
     input: JSON.stringify({
       tool_name: 'Bash',
-      tool_input: { command: 'Get-Content README.md' },
+      tool_input: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -421,7 +435,7 @@ test.skipIf(process.platform !== 'win32')('CodeBuddy entrypoint rewrites Bash co
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
-      modifiedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+      modifiedInput: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
     },
   });
 });
@@ -430,7 +444,7 @@ test('Copilot entrypoint ignores non-shell tools', () => {
   const result = spawnSync('bun', [entrypoint, '--copilot'], {
     input: JSON.stringify({
       toolName: 'edit',
-      toolArgs: { command: 'Get-Content README.md' },
+      toolArgs: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -443,7 +457,7 @@ test.skipIf(process.platform !== 'win32')('Copilot entrypoint rewrites bash comm
   const result = spawnSync('bun', [entrypoint, '--copilot'], {
     input: JSON.stringify({
       toolName: 'bash',
-      toolArgs: { command: 'Get-Content README.md' },
+      toolArgs: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -451,7 +465,7 @@ test.skipIf(process.platform !== 'win32')('Copilot entrypoint rewrites bash comm
   expect(new TextDecoder().decode(result.stderr)).toBe('');
   expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
     permissionDecision: 'allow',
-    modifiedArgs: { command: 'Get-Content -Encoding utf8 README.md' },
+    modifiedArgs: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
   });
 });
 
@@ -459,7 +473,7 @@ test.skipIf(process.platform !== 'win32')('Copilot entrypoint rewrites powershel
   const result = spawnSync('bun', [entrypoint, '--copilot'], {
     input: JSON.stringify({
       toolName: 'powershell',
-      toolArgs: { command: 'Get-Content README.md' },
+      toolArgs: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -467,7 +481,7 @@ test.skipIf(process.platform !== 'win32')('Copilot entrypoint rewrites powershel
   expect(new TextDecoder().decode(result.stderr)).toBe('');
   expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
     permissionDecision: 'allow',
-    modifiedArgs: { command: 'Get-Content -Encoding utf8 README.md' },
+    modifiedArgs: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
   });
 });
 
@@ -475,7 +489,7 @@ test('Grok entrypoint ignores non-shell tools', () => {
   const result = spawnSync('bun', [entrypoint, '--grok'], {
     input: JSON.stringify({
       toolName: 'read_file',
-      toolInput: { command: 'Get-Content README.md' },
+      toolInput: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -488,7 +502,7 @@ test.skipIf(process.platform !== 'win32')('Grok entrypoint rewrites run_terminal
   const result = spawnSync('bun', [entrypoint, '--grok'], {
     input: JSON.stringify({
       toolName: 'run_terminal_command',
-      toolInput: { command: 'Get-Content README.md' },
+      toolInput: { command: 'Get-Content README.md -TotalCount 5' },
     }),
   });
 
@@ -498,7 +512,7 @@ test.skipIf(process.platform !== 'win32')('Grok entrypoint rewrites run_terminal
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
-      updatedInput: { command: 'Get-Content -Encoding utf8 README.md' },
+      updatedInput: { command: 'Get-Content -Encoding utf8 README.md -TotalCount 5' },
     },
   });
 });
@@ -508,7 +522,7 @@ test.skipIf(process.platform !== 'win32')('Cursor entrypoint rewrites Shell comm
     input: JSON.stringify({
       tool_name: 'Shell',
       tool_input: {
-        command: 'Get-Content README.md',
+        command: 'Get-Content README.md -TotalCount 5',
         working_directory: 'C:\\workspace',
       },
     }),
@@ -519,7 +533,7 @@ test.skipIf(process.platform !== 'win32')('Cursor entrypoint rewrites Shell comm
   expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
     permission: 'allow',
     updated_input: {
-      command: 'Get-Content -Encoding utf8 README.md',
+      command: 'Get-Content -Encoding utf8 README.md -TotalCount 5',
       working_directory: 'C:\\workspace',
     },
   });
@@ -533,4 +547,75 @@ test('TypeScript entrypoint is a fail-open no-op for invalid input', () => {
   expect(result.status).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toBe('');
   expect(new TextDecoder().decode(result.stderr)).toBe('');
+});
+
+test('maps PowerShell cmdlets into RTK consult candidates and keeps RTK as the rewrite source', () => {
+  const calls: string[] = [];
+  const rewritten = preprocessCommand(
+    'Get-Content README.md',
+    'C:\\workspace',
+    'win32',
+    'C:\\local-app-data',
+    (command) => {
+      calls.push(`utf8:${command}`);
+      return 'Get-Content -Encoding utf8 README.md';
+    },
+    (command) => mapPowerShellCmdlets(command, 'win32'),
+    (command) => {
+      calls.push(`marker:${command}`);
+      return true;
+    },
+    (command) => {
+      calls.push(`rtk:${command}`);
+      return command === 'cat README.md' ? 'rtk read README.md' : undefined;
+    },
+  );
+
+  expect(rewritten).toBe('rtk read README.md');
+  expect(calls).toEqual(['utf8:Get-Content README.md', 'rtk:cat README.md', 'marker:rtk read README.md']);
+});
+
+test('falls back to the PowerShell rewrite result when RTK refuses the mapped candidate', () => {
+  const calls: string[] = [];
+  const rewritten = preprocessCommand(
+    'Get-Content README.md',
+    undefined,
+    'win32',
+    'C:\\local-app-data',
+    (command) => {
+      calls.push(`utf8:${command}`);
+      return 'Get-Content -Encoding utf8 README.md';
+    },
+    (command) => mapPowerShellCmdlets(command, 'win32'),
+    (command) => {
+      calls.push(`marker:${command}`);
+      return true;
+    },
+    (command) => {
+      calls.push(`rtk:${command}`);
+      return undefined;
+    },
+  );
+
+  expect(rewritten).toBe('Get-Content -Encoding utf8 README.md');
+  expect(calls).toEqual(['utf8:Get-Content README.md', 'rtk:cat README.md', 'marker:Get-Content -Encoding utf8 README.md']);
+});
+
+test.skipIf(process.platform !== 'win32' || !rtkAvailable())('Codex entrypoint maps PowerShell cmdlets to RTK candidates', { timeout: 30000 }, () => {
+  const result = spawnSync('bun', [entrypoint, '--codex'], {
+    input: JSON.stringify({
+      tool_name: 'Bash',
+      tool_input: { command: 'Get-ChildItem' },
+    }),
+  });
+
+  expect(result.status).toBe(0);
+  expect(new TextDecoder().decode(result.stderr)).toBe('');
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toEqual({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+      updatedInput: { command: 'rtk ls' },
+    },
+  });
 });
