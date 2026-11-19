@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- 放宽 PreToolUse 改写门,顺序拼接命令进入 RTK 改写:实测 rtk 1.1.0 对 `&&`/`;`/`||` 复合命令逐段改写(`git status && git diff` → `rtk git status && rtk git diff`,含引号内操作符与多行命令),此前 `isRewritableCommand` 将它们整体挡在门外是 ZCode 等平台"换个调用方式就逃逸"的主因;现改写门仅拒绝重定向(`>`/`>>`/`<`/`2>`/`&>`)与命令替换(`$(`/反引号)——rtk 对这些返回空,咨询只耗子进程;严格只读白名单 `isSafeRtkCommand`(PostToolUse `rtk proxy` 回放)保持全部危险 token 不变,并补充顺序拼接/重定向的单测与 BDD 场景。
+- 文档:新增 `hooks/AGENTS.md` 目录级 agent 指令,沉淀 Codex hooks 的真实注册链(manifest `hooks` 声明 → 插件缓存 → `~/.codex/config.toml` 的 `[hooks.state]` 信任条目 → sqlite `hook/started|completed` 运行事件)与 `~/.codex/hooks.json`(2026-08-26 遗留、hooks 数组全空、当前版本不加载)这一无效遗留的判定依据,并附"触发率 ≠ 改写率"的 JS harness 逃逸提示——2026-11-20 排查 RTK 逃逸时曾在该遗留文件上误判"钩子未注册";经 `alux-agent-instructions` normalizer 与 authoring validator 校验通过。
+
 ## 0.0.24 - 2026-11-19
 
 - PostToolUse 按平台协议分流:仅在能真正替换模型所见结果的平台(Codex `exit 2` 替换语义、Copilot `modifiedResult`、CodeBuddy/Qoder `updatedToolOutput`、Cline/OpenCode SDK 直改 toolResponse)保留冗长输出压缩与 `rtk proxy` 回放;附加型平台(Claude/ZCode/Grok/Cursor)摘除 PostToolUse 钩子并在入口静默放行——其协议只能把反馈追加在冗长原文旁边,摘要在这些平台反而增加 token(经官方文档逐平台核实,Claude 为 "shows stderr to Claude"、Grok 为 passive event、Cursor 仅许 `additional_context`)。省 token 全部收敛到 PreToolUse 的 RTK 改写与 `ALUX_RTK_COMPACT_*` 可调压缩。
