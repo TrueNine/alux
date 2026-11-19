@@ -231,7 +231,7 @@ test('rewrites safe commands through RTK before execution on every platform', ()
   expect(calls).toEqual(['utf8:git status', 'rtk:git status:C:\\workspace', 'marker:rtk git status']);
 });
 
-test('skips the RTK rewrite for compound commands and keeps the PowerShell rewrite result', () => {
+test('consults the RTK rewrite for sequential compound commands', () => {
   const calls: string[] = [];
   const rewritten = preprocessCommand(
     'rm -rf node_modules && echo done',
@@ -252,8 +252,33 @@ test('skips the RTK rewrite for compound commands and keeps the PowerShell rewri
     },
   );
 
+  expect(rewritten).toBe('rtk rm -rf node_modules && echo done');
+  expect(calls).toEqual(['utf8:rm -rf node_modules && echo done', 'rtk:rm -rf node_modules && echo done', 'marker:rtk rm -rf node_modules && echo done']);
+});
+
+test('skips the RTK rewrite for redirected commands and keeps the PowerShell rewrite result', () => {
+  const calls: string[] = [];
+  const rewritten = preprocessCommand(
+    'git status > out.txt',
+    'C:\\workspace',
+    'win32',
+    'C:\\local-app-data',
+    (command) => {
+      calls.push(`utf8:${command}`);
+      return undefined;
+    },
+    (command) => {
+      calls.push(`marker:${command}`);
+      return true;
+    },
+    (command) => {
+      calls.push(`rtk:${command}`);
+      return 'rtk git status > out.txt';
+    },
+  );
+
   expect(rewritten).toBeUndefined();
-  expect(calls).toEqual(['utf8:rm -rf node_modules && echo done', 'marker:rm -rf node_modules && echo done']);
+  expect(calls).toEqual(['utf8:git status > out.txt', 'marker:git status > out.txt']);
 });
 
 test('consults the RTK rewrite for simple commands outside the replay whitelist', () => {
