@@ -15,6 +15,7 @@
   <img alt="Grok Build" src="https://img.shields.io/badge/Grok%20Build-000000?style=flat-square&logo=xai&logoColor=white"/>
   <img alt="CodeBuddy" src="https://img.shields.io/badge/CodeBuddy-2F6FEB?style=flat-square"/>
   <img alt="Qoder" src="https://img.shields.io/badge/Qoder-6B4FBB?style=flat-square"/>
+  <img alt="Kimi Code" src="https://img.shields.io/badge/Kimi%20Code-000000?style=flat-square"/>
 </p>
 
 <p align="center">
@@ -244,13 +245,42 @@ For Qoder IDE, open **Settings → Plugins**, choose **Import** under **Custom**
 
 </details>
 
+### Kimi Code
+
+Kimi Code reads the repository guidance from `AGENTS.md` natively. The plugin manifest is packaged under `.kimi-plugin/plugin.json` (Kimi also accepts a root `kimi.plugin.json`, which wins when both exist; this repository ships only the directory form); it loads the skills under `skills/kimi-skills/`. Kimi Code plugin manifests wire hook rules and MCP servers inline rather than through referenced files, so the manifest embeds the shared session-start hook from `hooks/hooks.kimi.json` and the CodeGraph server from `mcps/.mcp.kimi.json` directly; contract tests keep the embedded copies synchronized with the canonical files.
+
+<details>
+
+> [!WARNING]
+> Official support is Kimi Code, not the legacy kimi-cli. The old Python/uv `kimi-cli` (`~/.kimi`) is no longer the supported product and cannot load this plugin. Install and run Kimi Code (`kimi`, data under `~/.kimi-code`). `kimi migrate` only copies config, MCP servers, and sessions; it does not install plugins.
+
+Kimi Code CLI 2.7.2 has no `kimi plugins install` subcommand (`kimi --help` lists `login`, `migrate`, `web`, and the rest, but not plugins). Plugin installation is the slash command inside `kimi`. No local clone is required; Kimi copies the repository into its own plugin directory:
+
+```bash
+kimi
+/plugins install https://github.com/TrueNine/alux
+/plugins reload
+```
+
+The installed plugin already carries `skills/kimi-skills/`, the session-start hook, and the CodeGraph MCP server. A checkout is only for developing the plugin itself (`/plugins install /path/to/alux`).
+
+The repository also ships a custom marketplace catalog at `.kimi-plugin/marketplace.json` (`version: "2"` catalog, `alux` entry). Browsing it needs a checkout, because Kimi resolves a relative `source` against the catalog file: the entry's `source` is `..`, which is the repository root that contains `.kimi-plugin/plugin.json`.
+
+```bash
+/plugins marketplace /path/to/alux/.kimi-plugin/marketplace.json
+```
+
+Plugin hooks run with the plugin root as their working directory. Kimi sets `KIMI_PLUGIN_ROOT` but does not expand `${KIMI_PLUGIN_ROOT}` in the command string, and Windows `cmd.exe` would not expand that syntax either, so the session-start hook is a `./` path (`bun ./hooks/session-start/sync-agent-instructions.ts`). The script still reads the session project from the stdin `cwd` field rather than the process working directory. The RTK pre-tool and post-tool hooks are not wired: Kimi Code `PreToolUse` hooks can only block through `permissionDecision: deny` and offer no command-rewrite channel, and `PostToolUse` is an observation-only event whose output never replaces the tool result, so the RTK pipeline would have nothing to attach to. Only the session-start instruction sync runs.
+
+</details>
+
 ## MCP servers
 
-Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --mcp` and indexes the current workspace. Platform catalogs live under `mcps/` (`.mcp.claude.json`, `.mcp.codex.json`, `.mcp.opencode.json`, `.mcp.zcode.json`, `.mcp.grok.json`, `.mcp.codebuddy.json`, `.mcp.copilot.json`, and `.mcp.qoder.json`); the Cursor plugin auto-discovers the root `mcp.json`. The Cline plugin declares the `mcp` capability and registers the same server programmatically through `api.registerMcpServer` during setup, staying fail-open on hosts without MCP registration support. Install CodeGraph and ensure `codegraph` is on `PATH` before enabling the plugin.
+Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --mcp` and indexes the current workspace. Platform catalogs live under `mcps/` (`.mcp.claude.json`, `.mcp.codex.json`, `.mcp.opencode.json`, `.mcp.zcode.json`, `.mcp.grok.json`, `.mcp.codebuddy.json`, `.mcp.copilot.json`, `.mcp.qoder.json`, and `.mcp.kimi.json`); the Cursor plugin auto-discovers the root `mcp.json`. The Kimi Code plugin embeds its catalog copy directly in the manifest, as Kimi Code plugin manifests declare `mcpServers` inline. The Cline plugin declares the `mcp` capability and registers the same server programmatically through `api.registerMcpServer` during setup, staying fail-open on hosts without MCP registration support. Install CodeGraph and ensure `codegraph` is on `PATH` before enabling the plugin.
 
 ## RTK hooks
 
-Every platform shares one RTK pipeline in [`hooks/`](hooks/): `PreToolUse` first applies the Windows PowerShell `Get-Content` UTF-8 rewrite, then maps common read-only PowerShell cmdlets (`Get-ChildItem`/`gci` → `ls`, `Get-Content`/`gc` → `cat`, `Select-String`/`sls` → `rg`; bare `-Recurse` becomes `-R`) into consult candidates — rtk has no rewrite support for cmdlets, so the mapping only feeds `rtk rewrite`, which still decides what reaches the model while a refused consult falls back to the UTF-8 rewrite or an untouched passthrough. The consult then runs for every command without redirections or command substitutions — rtk itself decides what it can optimize, so simple commands outside the read-only whitelist (for example `bun run dev`) are rewritten too, and sequential compounds (`&&`, `;`, `||`, multi-line) are rewritten segment-wise. Redirects and `$(`/backtick substitutions skip the rewrite and pass through untouched. `PostToolUse` compacts verbose output (kept head/tail lines around an omission marker) and replays safe read-only commands through `rtk proxy` for the compact native output — but only on platforms whose PostToolUse protocol actually replaces the result the model sees (Codex, Copilot, CodeBuddy, Qoder, plus the Cline/OpenCode SDK adapters). Append-only platforms (Claude, ZCode, Grok, Cursor) omit the post hook entirely: their feedback would be added next to the original verbose output instead of replacing it, which costs tokens rather than saving them. The strict read-only whitelist (`isSafeRtkCommand`) guards the replay, because replay re-executes the command.
+Every platform shares one RTK pipeline in [`hooks/`](hooks/): `PreToolUse` first applies the Windows PowerShell `Get-Content` UTF-8 rewrite, then maps common read-only PowerShell cmdlets (`Get-ChildItem`/`gci` → `ls`, `Get-Content`/`gc` → `cat`, `Select-String`/`sls` → `rg`; bare `-Recurse` becomes `-R`) into consult candidates — rtk has no rewrite support for cmdlets, so the mapping only feeds `rtk rewrite`, which still decides what reaches the model while a refused consult falls back to the UTF-8 rewrite or an untouched passthrough. The consult then runs for every command without redirections or command substitutions — rtk itself decides what it can optimize, so simple commands outside the read-only whitelist (for example `bun run dev`) are rewritten too, and sequential compounds (`&&`, `;`, `||`, multi-line) are rewritten segment-wise. Redirects and `$(`/backtick substitutions skip the rewrite and pass through untouched. `PostToolUse` compacts verbose output (kept head/tail lines around an omission marker) and replays safe read-only commands through `rtk proxy` for the compact native output — but only on platforms whose PostToolUse protocol actually replaces the result the model sees (Codex, Copilot, CodeBuddy, Qoder, plus the Cline/OpenCode SDK adapters). Append-only platforms (Claude, ZCode, Grok, Cursor) omit the post hook entirely: their feedback would be added next to the original verbose output instead of replacing it, which costs tokens rather than saving them. Kimi Code wires neither RTK hook: its `PreToolUse` hooks can only block via `permissionDecision: deny` with no command-rewrite channel, and `PostToolUse` is observation-only, so both the rewrite and the compaction would be no-ops; the session-start instruction sync still runs. The strict read-only whitelist (`isSafeRtkCommand`) guards the replay, because replay re-executes the command.
 
 Compaction thresholds are tunable through environment variables (invalid or non-positive values fall back to the defaults):
 
@@ -275,14 +305,15 @@ The `rules/` tree distributes glob-scoped agent rules the same way `skills/` dis
 | `rules/grok-rules/*.md` | Grok Build | Installed into the project's `.grok/rules/` (git-excluded) | None — frontmatter is stripped and every rule loads unconditionally |
 | `rules/qoder-rules/*.md` | Qoder | Installed into the project's `.qoder/rules/` (git-excluded) | `paths` honored |
 
-Codex, OpenCode, and ZCode have no per-file conditional rules mechanism (Codex scopes through nested `AGENTS.md` files only; OpenCode's config `instructions` array selects files by glob but loads them unconditionally; ZCode reads `AGENTS.md` and skills), so no trees are generated for them.
+Codex, OpenCode, ZCode, and Kimi Code have no per-file conditional rules mechanism (Codex scopes through nested `AGENTS.md` files only; OpenCode's config `instructions` array selects files by glob but loads them unconditionally; ZCode and Kimi Code read `AGENTS.md` and skills), so no trees are generated for them.
 
 <details>
 
 Only Cursor carries rules inside its plugin — the Claude Code, CodeBuddy, Grok, Cline, Copilot, and Qoder plugin manifests have no rules component. From a checked-out alux copy, install the copy-distributed assets into a project; the installer registers every copied file (and the alux clone itself, when it lives inside the project) in the project's `.git/info/exclude`, so alux assets stay local and never enter the project's version control:
 
 ```bash
-# All platforms (claude, cline, codebuddy, copilot, grok, qoder; cline also installs .cline/skills)
+# Copy-distributed assets (claude, cline, codebuddy, copilot, grok, qoder).
+# kimi is accepted by the script and copies skills into .kimi-code/skills, but the Kimi plugin already ships those skills — do not clone alux just to install it.
 bun alux/scripts/install-project-assets.ts .
 
 # Or platform by platform

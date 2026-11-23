@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/
 
 ## Unreleased
 
+## 0.0.27 - 2026-11-23
+
+- Kimi Code 安装说明改为会话内斜杠命令,并警告旧版 kimi-cli 已不再是官方支持的产品:Kimi Code CLI 2.7.2 没有 `kimi plugins install` 子命令,不能在 shell 里自动装插件;须运行 `kimi` 后执行 `/plugins install`。旧 Python/uv kimi-cli(`~/.kimi`)加载不了本插件,`kimi migrate` 也不迁移插件。
+- 新增 Kimi Code 插件支持:`.kimi-plugin/plugin.json` 清单(Kimi Code 原生要求 `hooks` 规则数组与 `mcpServers` 内联声明,清单内嵌副本与 `hooks/hooks.kimi.json`、`mcps/.mcp.kimi.json` 规范文件保持同步并由契约测试锁定;不另放根目录 `kimi.plugin.json`,两者并存时根文件优先)与 `.kimi-plugin/marketplace.json` 市场目录(`version: "2"` 目录格式,条目以 `id` 为主键,`source` 为 `..`——Kimi 按目录文件所在目录解析相对 source,指回含清单的仓库根)、`hooks/hooks.kimi.json` 会话钩子(命令为 `bun ./hooks/session-start/sync-agent-instructions.ts`:插件钩子的 cwd 是插件根,Kimi 不展开命令字符串里的 `${KIMI_PLUGIN_ROOT}`,Windows cmd 也不会;脚本从 stdin 的 `cwd` 取会话项目目录。经 Kimi Code 2.7.2 源码核实:`PreToolUse` 的 JSON 输出只认 `permissionDecision: deny` 阻塞、无命令改写通道,`PostToolUse` 为纯观察事件且输出不替换工具结果,故 RTK 前/后置钩子均不接入,仅保留 session-start 指令同步)、`skills/kimi-skills/` 共享技能分发、`mcps/.mcp.kimi.json` MCP 配置(不带 `type` 字段,与 Kimi Code `mcp.json` 文档形态一致,以 `command` 判定 stdio);项目资产安装器新增 `--platform kimi`(技能安装到 `.kimi-code/skills/`),并补充插件契约测试与跨平台 MCP 内联断言。
+
 ## 0.0.26 - 2026-11-23
 
 - OpenCode 插件只适配 V2:入口改为 `@opencode/plugin` 的 `Plugin.define`,移除 `@opencode-ai/plugin` 与 V1 `server()` 兼容导出。`package.json` 的 `exports` 指向 server 入口,仓库内通过 `.opencode/plugins/alux` 自动发现。setup 注册 CodeGraph MCP 与 `skills/opencode-skills`,并在 tool/shell hook 中保留命令改写、冗长输出压缩和安全只读命令的 `rtk proxy` 回放。

@@ -1,0 +1,11 @@
+{
+  "version": "2",
+  "plugins": [
+    {
+      "id": "alux",
+      "displayName": "Alux",
+      "source": "..",
+      "description": "Shared skills and workflows for Kimi Code"
+    }
+  ]
+}

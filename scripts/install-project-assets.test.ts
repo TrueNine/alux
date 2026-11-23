@@ -29,6 +29,7 @@ async function createAluxRoot(): Promise<string> {
   await createFixtureTree(root, 'rules/grok-rules', ['grok-rule.md']);
   await createFixtureTree(root, 'rules/qoder-rules', ['qoder-rule.md']);
   await createFixtureTree(root, 'skills/cline-skills/example-skill', ['SKILL.md', 'scripts/run.ts']);
+  await createFixtureTree(root, 'skills/kimi-skills/example-skill', ['SKILL.md']);
   return root;
 }
 
@@ -61,6 +62,7 @@ describe('installProjectAssets', () => {
       '.codebuddy/rules/codebuddy-rule.md',
       '.github/instructions/copilot-rule.instructions.md',
       '.grok/rules/grok-rule.md',
+      '.kimi-code/skills/example-skill/SKILL.md',
       '.qoder/rules/qoder-rule.md',
     ]);
     expect(result.excludedEntries).toEqual([...result.copiedFiles]);
@@ -183,6 +185,6 @@ describe('installProjectAssets', () => {
   });
 
   test('covers every copy-distributed platform target', () => {
-    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'codebuddy', 'copilot', 'grok', 'qoder']);
+    expect(Object.keys(PLATFORM_ASSETS).sort()).toEqual(['claude', 'cline', 'codebuddy', 'copilot', 'grok', 'kimi', 'qoder']);
   });
 });

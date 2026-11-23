@@ -41,6 +41,19 @@ describe('shared CodeGraph MCP configuration', () => {
     }
   });
 
+  test('Kimi Code embeds CodeGraph inline in its manifest, synchronized with the canonical catalog', async () => {
+    const manifest = JSON.parse(await readFile(resolve(repositoryRoot, '.kimi-plugin', 'plugin.json'), 'utf8')) as {
+      mcpServers?: Record<string, { command?: string; args?: string[] }>;
+    };
+    expect(manifest.mcpServers?.codegraph).toMatchObject({
+      command: 'codegraph',
+      args: ['serve', '--mcp'],
+    });
+
+    const canonical = JSON.parse(await readFile(resolve(repositoryRoot, 'mcps', '.mcp.kimi.json'), 'utf8')) as McpConfiguration;
+    expect(manifest.mcpServers).toEqual(canonical.mcpServers);
+  });
+
   test('Cursor auto-discovers the shared CodeGraph server from mcp.json', async () => {
     const configuration = JSON.parse(await readFile(resolve(repositoryRoot, 'mcp.json'), 'utf8')) as McpConfiguration & {
       $schema?: string;

@@ -4,7 +4,7 @@ import { cp, mkdir, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { appendGitExclude } from '../hooks/shared/git-exclude.ts';
 
-export type InstallPlatform = 'claude' | 'cline' | 'codebuddy' | 'copilot' | 'grok' | 'qoder';
+export type InstallPlatform = 'claude' | 'cline' | 'codebuddy' | 'copilot' | 'grok' | 'qoder' | 'kimi';
 
 export type InstallAsset = { source: string; target: string };
 
@@ -13,7 +13,7 @@ export type InstallProjectAssetsResult = {
   excludedEntries: string[];
 };
 
-/** Copy-distributed asset trees per platform: rules for every conditional platform, plus the Cline skills fallback. */
+/** Copy-distributed asset trees per platform: rules for every conditional platform, plus the skills-only Cline and Kimi Code fallbacks. */
 export const PLATFORM_ASSETS: Record<InstallPlatform, InstallAsset[]> = {
   claude: [{ source: 'rules/claude-rules', target: '.claude/rules' }],
   cline: [
@@ -24,6 +24,7 @@ export const PLATFORM_ASSETS: Record<InstallPlatform, InstallAsset[]> = {
   copilot: [{ source: 'rules/copilot-rules', target: '.github/instructions' }],
   grok: [{ source: 'rules/grok-rules', target: '.grok/rules' }],
   qoder: [{ source: 'rules/qoder-rules', target: '.qoder/rules' }],
+  kimi: [{ source: 'skills/kimi-skills', target: '.kimi-code/skills' }],
 };
 
 const PLATFORMS = Object.keys(PLATFORM_ASSETS) as InstallPlatform[];
@@ -83,7 +84,7 @@ export async function installProjectAssets(projectDirectory: string, options: { 
 }
 
 function usage(): never {
-  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|codebuddy|copilot|grok|qoder>]...');
+  console.error('Usage: install-project-assets.ts <project-dir> [--platform <claude|cline|codebuddy|copilot|grok|qoder|kimi>]...');
   process.exit(2);
 }
 

@@ -1,0 +1,31 @@
+{
+  "name": "alux",
+  "version": "0.0.27",
+  "description": "Shared skills and workflows for Kimi Code",
+  "author": {
+    "name": "TrueNine",
+    "email": "truenine304520@gmail.com",
+    "url": "https://truenine.org"
+  },
+  "homepage": "https://github.com/TrueNine/alux",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["skills", "coding-agents", "workflows", "kimi"],
+  "interface": {
+    "displayName": "Alux",
+    "shortDescription": "Shared skills and workflows for Kimi Code"
+  },
+  "skills": "./skills/kimi-skills",
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "bun ./hooks/session-start/sync-agent-instructions.ts",
+      "timeout": 30
+    }
+  ],
+  "mcpServers": {
+    "codegraph": {
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
+    }
+  }
+}
