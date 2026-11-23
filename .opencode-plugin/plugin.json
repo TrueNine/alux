@@ -1,6 +1,6 @@
 {
   "name": "alux",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "displayName": "Alux",
   "description": "Shared skills and workflows for AI coding agents",
   "author": {
@@ -15,6 +15,5 @@
   "agents": "./agents/opencode-agents",
   "commands": "./commands/opencode-commands",
   "plugin": "./.opencode-plugin/index.ts",
-  "hooks": "./.opencode-plugin/index.ts",
   "mcpServers": "./mcps/.mcp.opencode.json"
 }

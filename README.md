@@ -99,6 +99,58 @@ The plugin exposes the skills under `skills/cursor-skills` and loads `hooks/hook
 
 </details>
 
+### OpenCode
+
+OpenCode support is V2 only. OpenCode 1 cannot load this plugin: the server entry is `@opencode/plugin`'s `Plugin.define`, not the old `@opencode-ai/plugin` function. The package is not published to npm. Install it from GitHub, or point a project config at a local checkout.
+
+<details>
+
+> [!WARNING]
+> OpenCode V1 is no longer supported. This plugin does not ship the old `@opencode-ai/plugin` entry, and OpenCode 1 will not load it. Install and run OpenCode V2.
+
+Install it for every project on this machine:
+
+```bash
+opencode plugin add github:TrueNine/alux
+```
+
+That command writes a global plugin entry. It stays on the commit it installed and does not follow `main`. To track the default branch instead:
+
+```bash
+opencode plugin add github:TrueNine/alux#main
+```
+
+Check, update, or remove it with:
+
+```bash
+opencode plugin list
+opencode plugin update alux
+opencode plugin remove alux
+```
+
+`plugin update` moves an unpinned `github:TrueNine/alux` install and a `#main` install. An exact commit stays pinned until you add the plugin again.
+
+To enable Alux in one project only, clone the repository and add its directory to that project's `opencode.jsonc`. The path is relative to the config file, and the directory must be the package root (the directory that contains `package.json`). OpenCode loads the V2 server entry from the `"."` and `"./server"` exports.
+
+```bash
+git clone https://github.com/TrueNine/alux.git
+```
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": ["../alux"]
+}
+```
+
+Config changes apply without restarting OpenCode. If the plugin does not appear, run `opencode plugin list` and confirm the installed OpenCode is V2.
+
+After it loads, Alux contributes the skills under `skills/opencode-skills`, registers the CodeGraph MCP server from `mcps/.mcp.opencode.json` (`codegraph serve --mcp`), rewrites shell commands before execution, replaces verbose shell output with the shared RTK summary, and replays safe read-only commands through `rtk proxy` when the summary does not already replace the result. Install CodeGraph and ensure `codegraph` is on `PATH` before relying on that MCP server. Derived instruction files are synchronized when the plugin loads and again when a session is created.
+
+Opening this repository itself also loads `.opencode/plugins/alux`. That discovery path is only for working inside the Alux checkout. Other projects do not see it unless they install the plugin as shown above.
+
+</details>
+
 ### Cline (CLI / SDK / Kanban)
 
 Cline support uses the Cline SDK plugin system. It currently applies to the Cline CLI, SDK, and Kanban surfaces; the VS Code and JetBrains extensions do not load plugins yet.

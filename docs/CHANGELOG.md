@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/
 
 ## Unreleased
 
+## 0.0.26 - 2026-11-23
+
+- OpenCode 插件只适配 V2:入口改为 `@opencode/plugin` 的 `Plugin.define`,移除 `@opencode-ai/plugin` 与 V1 `server()` 兼容导出。`package.json` 的 `exports` 指向 server 入口,仓库内通过 `.opencode/plugins/alux` 自动发现。setup 注册 CodeGraph MCP 与 `skills/opencode-skills`,并在 tool/shell hook 中保留命令改写、冗长输出压缩和安全只读命令的 `rtk proxy` 回放。
 - 修复 Windows 上 `npm install` 的 postinstall 语法错误:Cline 等以 npm 为安装器的宿主经 `cmd.exe` 执行脚本,单引号对 cmd 无效,echo 文案里的圆括号(如 `(bun unavailable or failed)`)被解析为组括号导致 `此时不应有 ')'` 安装失败;文案改用破折号表述。bun/Codex/CodeBuddy 的安装器不经 cmd,不受影响。
 
 ## 0.0.25 - 2026-11-20

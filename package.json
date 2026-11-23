@@ -1,6 +1,6 @@
 {
   "name": "alux",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "packageManager": "bun@1.4.0",
@@ -18,15 +18,19 @@
       }
     ]
   },
+  "exports": {
+    ".": "./.opencode-plugin/index.ts",
+    "./server": "./.opencode-plugin/index.ts"
+  },
   "peerDependencies": {
     "@cline/sdk": "*",
-    "@opencode-ai/plugin": "*"
+    "@opencode/plugin": "*"
   },
   "peerDependenciesMeta": {
     "@cline/sdk": {
       "optional": true
     },
-    "@opencode-ai/plugin": {
+    "@opencode/plugin": {
       "optional": true
     }
   },
@@ -53,7 +57,7 @@
     "@cline/sdk": "0.0.82",
     "@cucumber/cucumber": "^13.2.1",
     "@fast-check/vitest": "^0.4.1",
-    "@opencode-ai/plugin": "1.18.29",
+    "@opencode/plugin": "2.3.2",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/bun": "^1.4.1",
