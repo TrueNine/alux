@@ -16,6 +16,7 @@
   <img alt="CodeBuddy" src="https://img.shields.io/badge/CodeBuddy-2F6FEB?style=flat-square"/>
   <img alt="Qoder" src="https://img.shields.io/badge/Qoder-6B4FBB?style=flat-square"/>
   <img alt="Kimi Code" src="https://img.shields.io/badge/Kimi%20Code-000000?style=flat-square"/>
+  <img alt="Pi" src="https://img.shields.io/badge/Pi-8C5CF5?style=flat-square"/>
 </p>
 
 <p align="center">
@@ -274,6 +275,21 @@ Plugin hooks run with the plugin root as their working directory. Kimi sets `KIM
 
 </details>
 
+### Pi Coding Agent
+
+Use Pi 1.6.0 or later. From a checkout of Alux, preview the package for one session or register it for future sessions.
+
+```bash
+pi -e .
+pi install .
+```
+
+For a project-local install, run `pi install /path/to/alux -l` from the target project and approve that project's Pi configuration when prompted. Pi loads the package from the checkout, so keep it at the registered path. To install directly from GitHub, run `pi install git:github.com/TrueNine/alux`.
+
+The package exposes the canonical skills in `skills/shared/` as `/skill:alux-*` commands. Pi loads the target project's `AGENTS.md` natively. The extension adds shared rule guidance with each rule's path scope and registers CodeGraph with Pi's built-in MCP, visible in `/mcp`. An existing `mcp.json` entry for CodeGraph takes precedence.
+
+Pi's model-invoked Bash and PowerShell tools use Alux's command preprocessing and successful-output compaction. On Windows, add `--tools +powershell` if PowerShell is outside your active tool set. Each command executes once. Pi retains full structured results for programmatic callers, and failed or already-truncated output stays available in its original form. Install `rtk` for command optimization, `codegraph` for MCP, and Bun for skills that run bundled scripts.
+
 ## MCP servers
 
 Every Alux plugin ships the CodeGraph MCP server, which runs `codegraph serve --mcp` and indexes the current workspace. Platform catalogs live under `mcps/` (`.mcp.claude.json`, `.mcp.codex.json`, `.mcp.opencode.json`, `.mcp.zcode.json`, `.mcp.grok.json`, `.mcp.codebuddy.json`, `.mcp.copilot.json`, `.mcp.qoder.json`, and `.mcp.kimi.json`); the Cursor plugin auto-discovers the root `mcp.json`. The Kimi Code plugin embeds its catalog copy directly in the manifest, as Kimi Code plugin manifests declare `mcpServers` inline. The Cline plugin declares the `mcp` capability and registers the same server programmatically through `api.registerMcpServer` during setup, staying fail-open on hosts without MCP registration support. Install CodeGraph and ensure `codegraph` is on `PATH` before enabling the plugin.
@@ -304,6 +320,7 @@ The `rules/` tree distributes glob-scoped agent rules the same way `skills/` dis
 | `rules/copilot-rules/*.instructions.md` | GitHub Copilot | Installed into the project's `.github/instructions/` (git-excluded) | `applyTo` honored |
 | `rules/grok-rules/*.md` | Grok Build | Installed into the project's `.grok/rules/` (git-excluded) | None — frontmatter is stripped and every rule loads unconditionally |
 | `rules/qoder-rules/*.md` | Qoder | Installed into the project's `.qoder/rules/` (git-excluded) | `paths` honored |
+| `rules/shared/*.md` | Pi | Read directly by the package extension | The system prompt tells Pi which rule to read for matching paths |
 
 Codex, OpenCode, ZCode, and Kimi Code have no per-file conditional rules mechanism (Codex scopes through nested `AGENTS.md` files only; OpenCode's config `instructions` array selects files by glob but loads them unconditionally; ZCode and Kimi Code read `AGENTS.md` and skills), so no trees are generated for them.
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/
 
 ## Unreleased
 
+## 0.0.28 - 2026-11-25
+
+- 新增 Pi Coding Agent 1.6.0 插件支持，提供原生包安装、共享技能与路径规则、CodeGraph MCP 注册，以及 Bash 和 PowerShell 的 RTK 改写与输出压缩。
+
 ## 0.0.27 - 2026-11-23
 
 - Kimi Code 安装说明改为会话内斜杠命令,并警告旧版 kimi-cli 已不再是官方支持的产品:Kimi Code CLI 2.7.2 没有 `kimi plugins install` 子命令,不能在 shell 里自动装插件;须运行 `kimi` 后执行 `/plugins install`。旧 Python/uv kimi-cli(`~/.kimi`)加载不了本插件,`kimi migrate` 也不迁移插件。

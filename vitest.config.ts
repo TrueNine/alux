@@ -7,7 +7,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'json', 'html', 'lcov'],
-      include: ['hooks/**/*.ts', 'scripts/**/*.ts', 'skills/**/scripts/*.ts', '.cline-plugin/**/*.ts', '.opencode-plugin/**/*.ts'],
+      include: ['hooks/**/*.ts', 'scripts/**/*.ts', 'skills/**/scripts/*.ts', '.cline-plugin/**/*.ts', '.opencode-plugin/**/*.ts', '.pi-plugin/**/*.ts'],
       exclude: [
         'node_modules/**',
         '.opencode/node_modules/**',

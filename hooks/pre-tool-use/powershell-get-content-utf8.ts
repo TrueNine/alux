@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import { spawnSync } from 'node:child_process';
+
 type OffsetFinder = (command: string) => number[];
 
 const parserScript = `
@@ -37,17 +39,17 @@ function powershellEncodedCommand(script: string): string {
 
 function findGetContentInsertionOffsets(command: string): number[] {
   try {
-    const result = Bun.spawnSync({
-      cmd: ['powershell.exe', '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', powershellEncodedCommand(parserScript)],
+    const result = spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', powershellEncodedCommand(parserScript)], {
       env: {
         ...process.env,
         CODEX_GET_CONTENT_COMMAND: Buffer.from(command, 'utf8').toString('base64'),
       },
-      stdout: 'pipe',
-      stderr: 'pipe',
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
     });
-    if (result.exitCode !== 0) return [];
-    const output = new TextDecoder().decode(result.stdout).trim();
+    if (result.status !== 0) return [];
+    const output = result.stdout.trim();
     if (!output) return [];
     const parsed = JSON.parse(output) as unknown;
     if (typeof parsed === 'number') return [parsed];
